@@ -2,7 +2,13 @@
 
 #include <iostream>
 #include <sstream>
+#include <ctime>
 using namespace std;
+
+int randomNumber(int minNum, int maxNum) {
+  srand(time(NULL));
+  return rand()%(maxNum - minNum + 1) + minNum;
+}
 
 Game::Game() {
   SDL_Init(SDL_INIT_EVERYTHING);
@@ -14,10 +20,15 @@ Game::Game() {
   count=0; kmCounter = 0, health = 5;
   x = WIDTH/2 - SHIP_SIZE/2; y = HEIGHT - SHIP_SIZE - 30;
   xBg_1 = 0, yBg_1 = 0, xBg_2 = 0, yBg_2 = -HEIGHT;
+  xA_1 = randomNumber(0, WIDTH - ASTEROID_SIZE/2), yA_1 = -SHIP_SIZE;
+  angle = 0, aScale = randomNumber(1,3);
   font = TTF_OpenFont("assets/Digital_tech.otf", FONT_SIZE);
 
   ship.setSource(0, 0, IMG_SIZE, IMG_SIZE);
   ship.setImage("assets/ship-1.png", ren);
+
+  asteroid1.setSource(0, 0, 320, 240);
+  asteroid1.setImage("assets/asteroid-1.png", ren);
 
   bg1.setSource(0, 0, 1080, 1920);
   bg1.setImage("assets/bg-3.jpg", ren);
@@ -45,13 +56,22 @@ void Game::loop() {
       frameCount=0;
       kmCounter += 1;
     }
-   if (yBg_1 >= HEIGHT) {
+// scrolling background
+  if (yBg_1 >= HEIGHT) {
      yBg_1 = 0;
      yBg_2 = -HEIGHT;
+  }
+// repeat random asteroid1
+  if (yA_1 >= HEIGHT)  {
+    xA_1 = randomNumber(0, WIDTH);
+    yA_1 = -SHIP_SIZE;
+    aScale = randomNumber(1,3);
   }
 
    bg1.setDest(xBg_1, yBg_1, WIDTH, HEIGHT); yBg_1++;
    bg2.setDest(xBg_2, yBg_2, WIDTH, HEIGHT); yBg_2++;
+
+   asteroid1.setDest(xA_1, yA_1, ASTEROID_SIZE/aScale, ASTEROID_SIZE/aScale); yA_1 += 2; angle++;
    ship.setDest(x, y, SHIP_SIZE, SHIP_SIZE);
 
     render();
@@ -70,6 +90,7 @@ void Game::render() {
 
   draw(bg1);
   draw(bg2);
+  drawSpin(asteroid1, angle);
 
   stringstream ss;
   ss << kmCounter;
@@ -78,6 +99,7 @@ void Game::render() {
 
   drawMsg(km, 100, 100, 234, 123, 123);
   drawMsg("KM", 160, 100, 234, 123, 123);
+
   draw(ship);
 
   frameCount++;
@@ -94,6 +116,12 @@ void Game::draw(Object obj) {
  SDL_Rect dest = obj.getDest();
  SDL_Rect src = obj.getSource();
  SDL_RenderCopyEx(ren, obj.getTex(), &src, &dest, 0, NULL, SDL_FLIP_NONE);
+}
+
+void Game::drawSpin(Object obj, int angle) {
+ SDL_Rect dest = obj.getDest();
+ SDL_Rect src = obj.getSource();
+ SDL_RenderCopyEx(ren, obj.getTex(), &src, &dest, angle, NULL, SDL_FLIP_NONE);
 }
 
 void Game::drawMsg(const char* msg, int x, int y, int r, int g, int b) {

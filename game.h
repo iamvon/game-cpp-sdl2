@@ -9,12 +9,13 @@
 #define WIDTH 600
 #define HEIGHT 1000
 #define FONT_SIZE 28
-#define FPS 80
+#define FPS 70
 #define IMG_SIZE 300
 const double SCALE = 0.5;
 #define SHIP_SIZE IMG_SIZE*SCALE
 #define SHIP_SPEED 190
-#define BACKGROUND_SPEED 700
+#define BACKGROUND_SPEED 600
+#define ASTEROID_SIZE 250
 
 class Game {
 public:
@@ -25,9 +26,11 @@ public:
   void input();
   void render();
   void draw(Object obj);
+  void drawSpin(Object obj, int angle);
   void drawMsg(const char* msg, int x, int y, int r, int g, int b);
   int xBg_1, yBg_1, xBg_2, yBg_2;
-  int kmCounter;
+  int xA_1, yA_1;
+  int kmCounter, angle, aScale;
   int health;
 private:
   SDL_Renderer* ren;
@@ -38,7 +41,7 @@ private:
   int frameCount, timerFPS, lastFrame;
   int mouseX, mouseY;
   int x, y;
-  Object ship, bg1, bg2;
+  Object ship, bg1, bg2, asteroid1;
 };
 
 #endif //GAME_H
