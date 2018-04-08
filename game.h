@@ -6,7 +6,7 @@
 #include <SDL2/SDL_ttf.h>
 #include "object.h"
 
-#define WIDTH 600
+#define WIDTH 550
 #define HEIGHT 1000
 #define FONT_SIZE 28
 #define FPS 70
@@ -14,7 +14,7 @@
 const double SCALE = 0.5;
 #define SHIP_SIZE IMG_SIZE*SCALE
 #define SHIP_SPEED 190
-#define BACKGROUND_SPEED 600
+#define BACKGROUND_SPEED 400
 #define ASTEROID_SIZE 250
 
 class Game {
