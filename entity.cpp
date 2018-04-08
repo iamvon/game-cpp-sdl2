@@ -1,6 +1,5 @@
 #include "entity.h"
 
-
 int Entity::createCycle(int r, int w, int h, int amount, int speed) {
     cycle tmp;
     tmp.row=r-1;

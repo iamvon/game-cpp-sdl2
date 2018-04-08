@@ -17,15 +17,24 @@ Game::Game() {
 
   TTF_Init();
   running=true;
-  count=0; kmCounter = 0, health = 5;
-  x = WIDTH/2 - SHIP_SIZE/2; y = HEIGHT - SHIP_SIZE - 30;
+  count=0; kmCounter = 0, hp = 5;
+  x = WIDTH/2 - SHIP_SIZE/2; y = HEIGHT - SHIP_SIZE - 70;
   xBg_1 = 0, yBg_1 = 0, xBg_2 = 0, yBg_2 = -HEIGHT;
   xA_1 = randomNumber(0, WIDTH - ASTEROID_SIZE/2), yA_1 = -SHIP_SIZE;
   angle = 0, aScale = randomNumber(1,3);
   font = TTF_OpenFont("assets/Digital_tech.otf", FONT_SIZE);
 
+  // gem.setImage("assets/gem-3.png",ren);
+  // gem.setDest(100, 100, 84, 90);
+  // gem_1 = gem.createCycle(1, 84, 90, 6, 30);
+  // gem.setCurAnimation(gem_1);
+
   ship.setSource(0, 0, IMG_SIZE, IMG_SIZE);
   ship.setImage("assets/ship-1.png", ren);
+
+  health.setSource(0, 0, 1200, 1200);
+  health.setImage("assets/heart.png", ren);
+  health.setDest(WIDTH - 35, HEIGHT - 35, 30, 30);
 
   asteroid1.setSource(0, 0, 320, 240);
   asteroid1.setImage("assets/asteroid-1.png", ren);
@@ -71,6 +80,7 @@ void Game::loop() {
    bg1.setDest(xBg_1, yBg_1, WIDTH, HEIGHT); yBg_1++;
    bg2.setDest(xBg_2, yBg_2, WIDTH, HEIGHT); yBg_2++;
 
+
    asteroid1.setDest(xA_1, yA_1, ASTEROID_SIZE/aScale, ASTEROID_SIZE/aScale); yA_1 += 2; angle++;
    ship.setDest(x, y, SHIP_SIZE, SHIP_SIZE);
 
@@ -90,6 +100,7 @@ void Game::render() {
 
   draw(bg1);
   draw(bg2);
+  // draw(gem);
   drawSpin(asteroid1, angle);
 
   stringstream ss;
@@ -97,9 +108,10 @@ void Game::render() {
   string ssKm = ss.str();
   const char* km = ssKm.c_str();
 
-  drawMsg(km, 100, 100, 234, 123, 123);
-  drawMsg("KM", 160, 100, 234, 123, 123);
+  drawMsg(km, 80, 80, 234, 123, 123);
+  drawMsg("KM", 140, 80, 234, 123, 123);
 
+  draw(health);
   draw(ship);
 
   frameCount++;
@@ -160,5 +172,5 @@ void Game::input() {
 }
 
 void Game::update() {
-  //player.updateAnimation();
+  // gem.updateAnimation();
 }

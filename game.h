@@ -5,6 +5,7 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 #include "object.h"
+#include "entity.h"
 
 #define WIDTH 550
 #define HEIGHT 1000
@@ -31,7 +32,7 @@ public:
   int xBg_1, yBg_1, xBg_2, yBg_2;
   int xA_1, yA_1;
   int kmCounter, angle, aScale;
-  int health;
+  int hp;
 private:
   SDL_Renderer* ren;
   SDL_Window* win;
@@ -41,7 +42,9 @@ private:
   int frameCount, timerFPS, lastFrame;
   int mouseX, mouseY;
   int x, y;
-  Object ship, bg1, bg2, asteroid1;
+  Object ship, bg1, bg2, asteroid1, health;
+  Entity gem;
+  int gem_1;
 };
 
 #endif //GAME_H
