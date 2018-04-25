@@ -22,5 +22,4 @@ void setImage(string filename, SDL_Renderer* ren);
 SDL_Texture* getTex() const {return tex;}
 };
 
-
 #endif //OBJECT_H
