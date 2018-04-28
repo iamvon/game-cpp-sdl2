@@ -6,7 +6,6 @@
 using namespace std;
 
 int randomNumber(int minNum, int maxNum) {
-  srand(time(NULL));
   return rand()%(maxNum - minNum + 1) + minNum;
 }
 
@@ -16,35 +15,50 @@ Game::Game() {
   SDL_SetWindowTitle(win, "My game");
 
   TTF_Init();
-  running=true; error = -20; 
-  count=0; kmCounter = 0, hp = 5, healthAmount = 5;
-  x = WIDTH/2 - SHIP_SIZE_W/2; y = HEIGHT - SHIP_SIZE_H - 70;
+  running=true; error = 32,aError = -33; checkPos = false, loser = false, play = false; checkRepair = false;
+  kmCounter = 0, healthAmount = 5; goal = 2000; checkCollision = false; countCollision = 0;
+  x = WIDTH/2 - SHIP_SIZE_W/2; y = HEIGHT - SHIP_SIZE_H - 250;
   xBg_1 = 0, yBg_1 = 0, xBg_2 = 0, yBg_2 = -HEIGHT;
+  xRe = randomNumber(0, WIDTH - HEALTH_SIZE*4), yRe = -HEALTH_SIZE*10;
   xA_1 = randomNumber(0, WIDTH - ASTEROID_SIZE/2), yA_1 = -SHIP_SIZE_H;
-  angle = 0, aScale = randomNumber(1,3);
+  reWidth = HEALTH_SIZE*2.4; reHeight = HEALTH_SIZE*2;
+  angle = 0, aScale = randomNumber(2,5);
   font = TTF_OpenFont("assets/Digital_tech.otf", FONT_SIZE);
 
-  // gem.setImage("assets/gem-3.png",ren);
-  // gem.setDest(100, 100, 84, 90);
-  // gem_1 = gem.createCycle(1, 84, 90, 6, 30);
-  // gem.setCurAnimation(gem_1);
+// ================================== INIT SPRITE ENTITY ===================================== //  
+   ship.setImage("assets/ship.png",ren);
+   ship_1 = ship.createCycle(1, 512, 512, 4, 8);
+   ship.setCurAnimation(ship_1);
 
-  ship.setSource(0, 0, IMG_SIZE_W, IMG_SIZE_H);
-  ship.setImage("assets/ship-3.png", ren);
-  
+   explosion.setImage("assets/explosion.png",ren);
+   explosion_1 = explosion.createCycle(1, 118, 118, 5, 14);
+   explosion.setCurAnimation(explosion_1);
+
+// ================================== INIT OBJECTS ===================================== //
   for (int i = 0; i < healthAmount; ++i) {
   health[i].setSource(0, 0, 1200, 1200);
   health[i].setImage("assets/heart.png", ren);
   }
-  
-  asteroid1.setSource(0, 0, 320, 240);
-  asteroid1.setImage("assets/asteroid-1.png", ren);
+
+  asteroid1.setSource(0, 0, ASTEROID_SIZE, ASTEROID_SIZE);
+  asteroid1.setImage("assets/asteroid-3.png", ren);
 
   bg1.setSource(0, 0, 1080, 1280);
   bg1.setImage("assets/bg-10.jpg", ren);
 
   bg2.setSource(0, 0, 1080, 1920);
   bg2.setImage("assets/bg-10.jpg", ren);
+
+  gameover.setSource(0, 0, WIDTH, HEIGHT);
+  gameover.setImage("assets/gameover3.png", ren);
+
+  start.setSource(0, 0, WIDTH, HEIGHT);
+  start.setImage("assets/start.png", ren);
+  start.setDest(0, 0, WIDTH, HEIGHT);
+
+  repair.setSource(0, 0, 417, 330);
+  repair.setImage("assets/repair.png", ren);
+
   loop();
 }
 
@@ -64,41 +78,111 @@ void Game::loop() {
     if(lastFrame >= (lastTime + SHIP_SPEED)) {
       lastTime=lastFrame;
       frameCount=0;
-      kmCounter += 1;
+     if (loser == false && play == true) {
+         kmCounter += 1;   //  increase km
+       }
     }
+
+// ==================================   UPDATE BACKGROUND'S STATE ===================================== //
 // scrolling background
   if (yBg_1 >= HEIGHT) {
      yBg_1 = 0;
      yBg_2 = -HEIGHT;
   }
-// repeat random asteroid1
-  if (yA_1 >= HEIGHT || conllison(x, y, xA_1, yA_1))  {
-    xA_1 = randomNumber(0, WIDTH);
-    yA_1 = -SHIP_SIZE_H;
-    aScale = randomNumber(1,3);
+   //  move background
+  if (loser == false) {
+   bg1.setDest(xBg_1, yBg_1, WIDTH, HEIGHT); yBg_1+=1.4; 
+   bg2.setDest(xBg_2, yBg_2, WIDTH, HEIGHT); yBg_2+=1.4; 
+  }
+  else {
+   bg1.setDest(xBg_1, yBg_1, WIDTH, HEIGHT); yBg_1+=0.25;
+   bg2.setDest(xBg_2, yBg_2, WIDTH, HEIGHT); yBg_2+=0.25;
   }
 
-   if(conllison(x, y, xA_1, yA_1)) {
-      cout << "conllison" << endl; 
-      //  cout << countConllison << endl;
-   } else cout << "not conllison" << endl;
+// ==================================   UPDATE ASTEROID'S STATE ===================================== //
 
-   cout << x << " | " << xA_1 << endl;
-   cout << y << " | " << yA_1 << endl;
+// repeat random asteroid1
+  if (yA_1 >= HEIGHT || collision(x, y, xA_1, yA_1))  {
+    if (collision(x, y, xA_1, yA_1)){
+      checkCollision = true;   // kiểm tra sự kiện va chạm thật
+    } 
+    xA_1 = randomNumber(0, WIDTH);
+    yA_1 = -SHIP_SIZE_H;
+    aScale = randomNumber(2,5);
+    step = randomNumber(1,5);
+   if(xA_1 <= WIDTH/2) checkPos = true; else checkPos = false;
+  }
 
-   bg1.setDest(xBg_1, yBg_1, WIDTH, HEIGHT); yBg_1++;
-   bg2.setDest(xBg_2, yBg_2, WIDTH, HEIGHT); yBg_2++;
-   
+  // move asteroid1
    aWidth = ASTEROID_SIZE/aScale; aHeight = ASTEROID_SIZE/aScale;
-   asteroid1.setDest(xA_1, yA_1, aWidth, aHeight); yA_1 += 2; angle++;
-   ship.setDest(x, y, SHIP_SIZE_W, SHIP_SIZE_H);
+   asteroid1.setDest(xA_1, yA_1, aWidth, aHeight);
+   if (play == true) {
+      if(checkPos) {
+       xA_1 += 1/step; yA_1 += 3; angle += 2;
+     }
+      else {
+       xA_1 -= 1/step; yA_1 += 3; angle += 2;
+     }
+   }
+
+
+  //  explosion.setDest(x, y, 0, 0);
+  //  if(collision(x, y, xA_1, yA_1)) {
+  //     cout << "collision" << endl;
+  //     //  cout << countcollision << endl;
+  //  } else cout << "not collision" << endl;
+
+// ==================================   UPDATE COLLISION'S STATE ===================================== //
+  // xử lý vụ nổ va chạm
+    if(checkCollision){
+      explosion.setDest(x, y-20, 170, 170); 
+      ++countCollision;
+      if(countCollision >= 80)  {   // kéo dài tgian cho hiệu ứng nổ
+        checkCollision = false; countCollision = 0; 
+        }
+    }   else explosion.setDest(x, y, 0, 0); 
+  
+// ==================================   UPDATE REPAIR'S STATE ===================================== //  
+  // repeat repair
+  if(yRe >= HEIGHT+HEALTH_SIZE*4 || repairCollision(x, y, xRe, yRe)) { 
+    if (repairCollision(x, y, xRe, yRe)) {
+      checkRepair = true;  //  kiểm tra sự kiện repair thật
+    } else checkRepair = false;
+    xRe = randomNumber(0, WIDTH - HEALTH_SIZE*4), yRe = -HEALTH_SIZE*10;
+  }
+   if(play == true && loser == false && healthAmount <= 3) {  // điều kiện xuất hiện repair
+      repair.setDest(xRe, yRe, reWidth, reHeight); yRe+=1;
+   } 
+
+
+  //   cout << x << " | " << xA_1 << endl;
+  //   cout << y << " | " << yA_1 << endl;
+  //  cout << mouseX << " | " << mouseY << endl;
+
+ 
+// ==================================   UPDATE SHIP'S STATE ===================================== //
+   // ship bottom border
+   if(y > HEIGHT-SHIP_SIZE_H-20) y = HEIGHT-SHIP_SIZE_H-20;
+   ship.setDest(x, y, SHIP_SIZE_W, SHIP_SIZE_H); 
+   if (y != HEIGHT-SHIP_SIZE_H-20) y += 0.3;   // move ship backward
 
    // update ship's health
    for (int i = 0; i < healthAmount; ++i) {
-    if(conllison(x, y, xA_1, yA_1)) { --healthAmount; break;}
-    // cout << healthAmount << endl;
+    if(collision(x, y, xA_1, yA_1)) { 
+      --healthAmount; 
+       break;
+       } 
+    if(checkRepair == true) {
+      if (healthAmount < 5) {
+        ++healthAmount;  
+      }
+       checkRepair = false;
+    }  
     health[i].setDest(WIDTH - 35 - i*35, HEIGHT - 35, HEALTH_SIZE, HEALTH_SIZE);
   }
+
+   
+   gameover.setDest(0, 0, WIDTH, HEIGHT);  // Game Over
 
     render();
     input();
@@ -114,25 +198,35 @@ void Game::render() {
   rect.h=HEIGHT;
   SDL_RenderFillRect(ren, &rect);
 
-    draw(bg1);
-    draw(bg2);
-  // draw(gem);
+   draw(bg1);
+   draw(bg2);
   drawSpin(asteroid1, angle);
 
+  draw(repair);
+
   stringstream ss;
-  ss << kmCounter;
+  ss << goal - kmCounter;
   string ssKm = ss.str();
   const char* km = ssKm.c_str();
 
-  drawMsg(km, 80, 80, 234, 123, 123);
+  drawMsg(km, 70, 80, 234, 123, 123);
   drawMsg("KM", 140, 80, 234, 123, 123);
 
    // update ship's health
   for(int i = 0; i < healthAmount; ++i) {
    draw(health[i]);
   }
-  draw(ship);
 
+  draw(ship);
+  draw(explosion);
+
+  if(play == false) draw(start);
+
+  if(healthAmount == 0) {
+    loser = true;
+    draw(gameover);
+  }
+  
   frameCount++;
   int timerFPS = SDL_GetTicks()-lastFrame;
   if(timerFPS<(BACKGROUND_SPEED/FPS)) {
@@ -140,7 +234,82 @@ void Game::render() {
   }
 
   SDL_RenderPresent(ren);
+
 }
+
+void Game::input() {
+  SDL_Event e;
+  while(SDL_PollEvent(&e)) {
+
+    // Choose menu
+    if(e.type == SDL_MOUSEBUTTONDOWN) {
+       if((234 <= mouseX && mouseX <= 346) && (360 <= mouseY && mouseY <= 432)) play = true;
+       else if((234 <= mouseX && mouseX <= 346) && (489 <= mouseY && mouseY <= 561))  running = false;
+    }
+
+    if(e.type == SDL_QUIT) {running=false; cout << "Quitting" << endl;}
+    if(e.type == SDL_KEYDOWN) {
+      if(e.key.keysym.sym == SDLK_ESCAPE) running=false;
+
+      // di chuyển và bo viền
+      if (loser == false) {
+        if(0 >= x+10) x = -15; if(x > WIDTH-SHIP_SIZE_W+10) x = WIDTH-SHIP_SIZE_W+10;
+        if(0 >= y+10) y = -15;
+
+        if(e.key.keysym.sym == SDLK_LEFT) x -= SHIP_SPEED_MOVE, y -= 3;
+        else if(e.key.keysym.sym == SDLK_RIGHT) x += SHIP_SPEED_MOVE, y -= 3;
+        else if (e.key.keysym.sym == SDLK_UP)  y -= 4;
+        else if (e.key.keysym.sym == SDLK_DOWN)  y += 1;
+
+        else if (e.key.keysym.sym == SDLK_UP) {
+          if (e.key.keysym.sym == SDLK_LEFT)  x -= SHIP_SPEED_MOVE, y -= 4;
+        } 
+        else if (e.key.keysym.sym == SDLK_UP) {
+          if(e.key.keysym.sym == SDLK_RIGHT)  x += SHIP_SPEED_MOVE, y -= 4;
+        } 
+        else if (e.key.keysym.sym ==  SDLK_LEFT) {
+          if (e.key.keysym.sym == SDLK_UP)  x -= SHIP_SPEED_MOVE, y -= 4;
+        }
+        else if (e.key.keysym.sym == SDLK_RIGHT) {
+          if(e.key.keysym.sym == SDLK_UP)  x += SHIP_SPEED_MOVE, y -= 4;
+        }
+      }
+    }
+     if(e.type == SDL_KEYUP) {
+        //  if(e.key.keysym.sym == SDLK_LEFT && (0 <= x && x <= WIDTH-SHIP_SIZE_W)) x += 0;
+        //  else if(e.key.keysym.sym == SDLK_RIGHT && (0 <= x && x <= WIDTH-SHIP_SIZE_W)) x -= 0;
+     }
+     SDL_GetMouseState(&mouseX, &mouseY);
+  }
+}
+
+//  update sprite
+void Game::update() {
+   ship.updateAnimation();
+   explosion.updateAnimation();
+}
+
+// ==================================== Collision Logic ===================================================== //
+
+bool Game::collision(double x, double y, double xA_1, double yA_1) {
+  // cout << aWidth << ' ' << aHeight << endl;
+  if ((x+error <= xA_1 && xA_1 <= x+SHIP_SIZE_W-error) && (y+error <= yA_1+aError && yA_1+aError <= y+SHIP_SIZE_H-110)) return true;
+  else if ((x+error <= xA_1+aWidth && xA_1+aWidth <= x+SHIP_SIZE_W-error) && (y+error <= yA_1+aError && yA_1+aError <= y+SHIP_SIZE_H-110)) return true;
+  else if ((x+error <= xA_1+aWidth && xA_1+aWidth <= x+SHIP_SIZE_W-error) && (y+error <= yA_1+aHeight+aError && yA_1+aHeight+aError <= y+SHIP_SIZE_H-110)) return true;
+  else if ((x+error <= xA_1 && xA_1 <= x+SHIP_SIZE_W-error) && (y+error <= yA_1+aHeight+aError && yA_1+aHeight+aError <= y+SHIP_SIZE_H-110)) return true;
+  else return false;
+}
+
+bool Game::repairCollision(double x, double y, double xRe, double yRe) {
+  if ((x+error <= xRe && xRe <= x+SHIP_SIZE_W-error) && (y+error <= yRe && yRe <= y+SHIP_SIZE_H-50)) return true;
+  else if ((x+error <= xRe+reWidth && xRe+reWidth <= x+SHIP_SIZE_W-error) && (y+error <= yRe && yRe <= y+SHIP_SIZE_H-50)) return true;
+  else if ((x+error <= xRe+reWidth && xRe+reWidth <= x+SHIP_SIZE_W-error) && (y+error <= yRe+reHeight && yRe+reHeight <= y+SHIP_SIZE_H-50)) return true;
+  else if ((x+error <= xRe && xRe <= x+SHIP_SIZE_W-error) && (y+error <= yRe+reHeight && yRe+reHeight <= y+SHIP_SIZE_H-50)) return true;
+  else return false;
+}
+
+
+// ==================================== Draw functions ===================================================== //
 
 void Game::draw(Object obj) {
  SDL_Rect dest = obj.getDest();
@@ -149,7 +318,7 @@ void Game::draw(Object obj) {
 }
 
 void Game::drawSpin(Object obj, int angle) {
-//  angle = 0; 
+//  angle = 0;
  SDL_Rect dest = obj.getDest();
  SDL_Rect src = obj.getSource();
  SDL_RenderCopyEx(ren, obj.getTex(), &src, &dest, angle, NULL, SDL_FLIP_NONE);
@@ -173,35 +342,4 @@ void Game::drawMsg(const char* msg, int x, int y, int r, int g, int b) {
  SDL_FreeSurface(surf);
  SDL_RenderCopy(ren, tex, NULL, &rect);
  SDL_DestroyTexture(tex);
-}
-
-void Game::input() {
-  SDL_Event e;
-  while(SDL_PollEvent(&e)) {
-    if(e.type == SDL_QUIT) {running=false; cout << "Quitting" << endl;}
-    if(e.type == SDL_KEYDOWN) {
-      if(e.key.keysym.sym == SDLK_ESCAPE) running=false;
-      
-      // di chuyển và bo viền 
-      if(0 >= x) x = 0; if(x > WIDTH-SHIP_SIZE_W) x = WIDTH-SHIP_SIZE_W;
-      if(e.key.keysym.sym == SDLK_LEFT && (0 <= x && x <= WIDTH-SHIP_SIZE_W)) x -= SHIP_SPEED_MOVE;
-      if(e.key.keysym.sym == SDLK_RIGHT && (0 <= x && x <= WIDTH-SHIP_SIZE_W)) x += SHIP_SPEED_MOVE;
-    }
-    if(e.type == SDL_KEYUP) {
-    }
-     SDL_GetMouseState(&mouseX, &mouseY);
-  }
-}
-
-void Game::update() {
-  // gem.updateAnimation();
-}
-
-bool Game::conllison(int x, int y, int &xA_1, int &yA_1) {
-  // cout << aWidth << ' ' << aHeight << endl;
-  if ((x <= xA_1 && xA_1 <= x+SHIP_SIZE_W) && (y <= yA_1+error)) return true;
-  else if ((x <= xA_1+aWidth && xA_1+aWidth <= x+SHIP_SIZE_W) && (y <= yA_1+error)) return true;
-  else if ((x <= xA_1+aWidth && xA_1+aWidth <= x+SHIP_SIZE_W) && (y <= yA_1+aHeight+error)) return true;
-  else if ((x <= xA_1 && xA_1 <= x+SHIP_SIZE_W) && (y <= yA_1+aHeight+error)) return true;
-  else return false;
 }

@@ -10,6 +10,7 @@ int Entity::createCycle(int r, int w, int h, int amount, int speed) {
     tmp.tick = 0;
     animations.push_back(tmp);
     return animations.size()-1;
+    // cout << animations.size()-1 << endl;
 }
 
 void Entity::updateAnimation() {
