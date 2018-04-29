@@ -15,5 +15,5 @@ void Object::setSource(double x, double y, double w, double h) {
 void Object::setImage(string filename, SDL_Renderer* ren) {
   SDL_Surface* surf = IMG_Load(filename.c_str());
   tex = SDL_CreateTextureFromSurface(ren, surf);
-  //  SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_NONE);
+  // SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_NONE);
 }
