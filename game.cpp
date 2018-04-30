@@ -15,11 +15,12 @@ Game::Game() {
   SDL_SetWindowTitle(win, "Return to Earth");
 
   TTF_Init();
-  running=true; error = 31,aError = -30; checkPos1 = false, loser = false, play = false; checkRepair = false; countShootingConllision = 0; shooting= false;
+  running=true; error = 31,aError = -30; checkPos1 = false, loser = false, play = false; checkRepair = false; countShootingConllision = 0; shooting= false; checkBulletBuff = false;
   kmCounter = 0, healthAmount = 5; fireAmount = 27; goal = 2000; checkCollision1 = false; checkCollision2 = false; countCollision1 = 0, countCollision2 = 0; countShooting = 1;
   x = WIDTH/2 - SHIP_SIZE_W/2; y = HEIGHT - SHIP_SIZE_H - 250;
   xBg_1 = 0, yBg_1 = 0, xBg_2 = 0, yBg_2 = -HEIGHT;
   xRe = randomNumber(0, WIDTH - HEALTH_SIZE*4), yRe = -HEALTH_SIZE*10;
+  xBulletBuff = randomNumber(0, WIDTH - BULLET_BUFF_SIZE), yBulletBuff = -BULLET_BUFF_SIZE*5;
   xA_1 = randomNumber(0, WIDTH - ASTEROID_SIZE/2), yA_1 = -SHIP_SIZE_H;
   xA_2 = randomNumber(0, WIDTH - ASTEROID_SIZE/2), yA_2 = -SHIP_SIZE_H-100;
   for(int i = 1; i < fireAmount; ++i) {
@@ -42,6 +43,7 @@ Game::Game() {
    explosion.setCurAnimation(explosion_1);
 
    blue.setImage("assets/blue.png",ren);
+   blue.setDest(200, 200, 150, 150);
    blue_1 = blue.createCycle(1, 256, 256, 17, 10);
    blue.setCurAnimation(blue_1);
 
@@ -80,16 +82,12 @@ Game::Game() {
   repair.setImage("assets/repair.png", ren);
 
   for(int i = 0; i < fireAmount; ++i) {
-     fire[i].setSource(0, 0, 1000, 1000);
-     fire[i].setImage("assets/bullet4.png",ren);
+     fire[i].setSource(0, 0, 400, 400);
+     fire[i].setImage("assets/bullet.png",ren);
    }
 
-  bulletCur.setSource(0, 0, 1000, 1000);
-  bulletCur.setImage("assets/bullet4.png", ren);
-  bulletCur.setDest(15, HEIGHT - 48, 43, 43);
-
-  bulletCur.setSource(0, 0, 1000, 1000);
-  bulletCur.setImage("assets/bullet4.png", ren);
+  bulletCur.setSource(0, 0, 400, 400);
+  bulletCur.setImage("assets/bullet.png", ren);
   bulletCur.setDest(15, HEIGHT - 48, 43, 43);
 
   gravity.setSource(0, 0, 750, 750);
@@ -99,6 +97,10 @@ Game::Game() {
   board.setSource(0, 0, 300, 330);
   board.setImage("assets/gear4.png", ren);
   board.setDest(25, 30, 130, 143);
+
+  bulletBuff.setSource(0, 0, 400, 400);
+  bulletBuff.setImage("assets/bulletBuff1.png", ren);
+  // bulletBuff.setDest(200, 200, 100, 100);
 
   loop();
 }
@@ -185,24 +187,24 @@ void Game::loop() {
    }
 
 // ==================================   UPDATE SHOOTING'S STATE ====================================== //
-
+ if(checkBulletBuff == true && countShooting == 26)  countShooting = 1, checkBulletBuff = false;
   if(yFire[fireAmount-1] >= -fireHeight[fireAmount-1]) {
   if (countShooting < fireAmount) {
     for(int i = 1; i < countShooting; ++i) {
+        //  bullet buff
 
        if(shootingCollision(xFire[i], yFire[i], fireWidth[i], fireHeight[i], xA_1, yA_1, aWidth1, aHeight1) == true || shootingCollision(xFire[i], yFire[i], fireWidth[i], fireHeight[i], xA_2, yA_2, aWidth2, aHeight2) == true) {
         cout << "BOOOOOOOOOOOOOOM" << endl;
         blue.setDest(xFire[i]-50, yFire[i]-70, 150, 150);  //  Explosion effect
-        if(shootingCollision(xFire[i], yFire[i], fireWidth[i], fireHeight[i], xA_1, yA_1, aWidth1, aHeight1) == true)  resetAsteroid1(xA_1, yA_1, aScale1, step1);  // Destroy the asteroid1
-        if(shootingCollision(xFire[i], yFire[i], fireWidth[i], fireHeight[i], xA_2, yA_2, aWidth2, aHeight2) == true)  resetAsteroid2(xA_2, yA_2, aScale2, step2);  // Destroy the asteroid2
-        xFire[i] = -100, yFire[i] = HEIGHT+100, fireWidth[i] = 0, fireHeight[i] = 0;
-        } else blue.setDest(xFire[i]-50, yFire[i]-70, 0, 0);
+        if(shootingCollision(xFire[i], yFire[i], fireWidth[i], fireHeight[i], xA_1, yA_1, aWidth1, aHeight1) == true)   resetAsteroid1(xA_1, yA_1, aScale1, step1);  // Destroy the asteroid1
+        if(shootingCollision(xFire[i], yFire[i], fireWidth[i], fireHeight[i], xA_2, yA_2, aWidth2, aHeight2) == true)   resetAsteroid2(xA_2, yA_2, aScale2, step2);  // Destroy the asteroid2
+         xFire[i] = -300, yFire[i] = HEIGHT+100;   // Remove bullet  
+        } else  {
+           blue.setDest(xFire[i]-50, yFire[i]-70, 0, 0);
+           yFire[i]-=4;
+           fire[i].setDest(xFire[i], yFire[i], fireWidth[i], fireHeight[i]);
+        } 
 
-      if (yFire[i] <= -fireHeight[i])  xFire[i] = -100, yFire[i] = HEIGHT+100, fireWidth[i] = 0, fireHeight[i] = 0;
-      else {
-        yFire[i]-=4;
-        fire[i].setDest(xFire[i], yFire[i], fireWidth[i], fireHeight[i]);
-      }
       //  cout << xFire[i]  << " | " << yFire[i] << endl;
      }
     // cout << countShooting << endl;
@@ -229,16 +231,27 @@ void Game::loop() {
     } else explosion.setDest(x, y, 0, 0);
 
 
-// ==================================   UPDATE REPAIR'S STATE ===================================== //
+// ==================================   UPDATE BUFF'S STATE ===================================== //
   // repeat repair
-  if(yRe >= HEIGHT+HEALTH_SIZE*4 || repairCollision(x, y, xRe, yRe)) {
-    if (repairCollision(x, y, xRe, yRe)) {
+  if(yRe >= HEIGHT+HEALTH_SIZE*4 || buffCollision(x, y, xRe, yRe)) {
+    if (buffCollision(x, y, xRe, yRe)) {
       checkRepair = true;  //  kiểm tra sự kiện repair thật
     } else checkRepair = false;
     xRe = randomNumber(0, WIDTH - HEALTH_SIZE*4), yRe = -HEALTH_SIZE*10;
   }
    if(play == true && loser == false && healthAmount <= 3) {  // điều kiện xuất hiện repair
       repair.setDest(xRe, yRe, reWidth, reHeight); yRe+=1;
+   }
+
+    // repeat bullet buff
+  if(yBulletBuff >= HEIGHT+BULLET_BUFF_SIZE*2 || buffCollision(x, y, xBulletBuff, yBulletBuff)) {
+    if (buffCollision(x, y, xBulletBuff, yBulletBuff)) {
+      checkBulletBuff = true;  //  kiểm tra sự kiện bullet buff thật
+    } else checkBulletBuff = false;
+    xBulletBuff = randomNumber(0, WIDTH - BULLET_BUFF_SIZE), yBulletBuff = -BULLET_BUFF_SIZE*5;
+  }
+   if(play == true && loser == false && countShooting == 26) {  // điều kiện xuất hiện bullet buff
+      bulletBuff.setDest(xBulletBuff, yBulletBuff, BULLET_BUFF_SIZE, BULLET_BUFF_SIZE); yBulletBuff+=1;
    }
 
 
@@ -251,7 +264,7 @@ void Game::loop() {
    // update ship's health
    for (int i = 0; i < healthAmount; ++i) {
     if(collision(x, y, xA_1, yA_1, aWidth1, aHeight1) || collision(x, y, xA_2, yA_2, aWidth2, aHeight2)) {
-      --healthAmount;
+      // --healthAmount;
        break;
        }
     if(checkRepair == true) {
@@ -288,6 +301,7 @@ void Game::render() {
   drawSpin(asteroid2, angle);
 
   draw(repair);
+  drawSpin(bulletBuff, 0);
 
   if(yFire[fireAmount-1] >= -fireHeight[fireAmount-1]) {
     if(countShooting < fireAmount) {
@@ -405,23 +419,6 @@ void Game::update() {
 
 // ==================================== Collision Logic ===================================================== //
 
-// bool Game::collision(double x, double y, double xA_1, double yA_1) {
-//   // cout << aWidth1 << ' ' << aHeight1 << endl;
-//   if ((x+error <= xA_1 && xA_1 <= x+SHIP_SIZE_W-error) && (y+error <= yA_1+aError && yA_1+aError <= y+SHIP_SIZE_H-110)) return true;
-//   else if ((x+error <= xA_1+aWidth1 && xA_1+aWidth1 <= x+SHIP_SIZE_W-error) && (y+error <= yA_1+aError && yA_1+aError <= y+SHIP_SIZE_H-110)) return true;
-//   else if ((x+error <= xA_1+aWidth1 && xA_1+aWidth1 <= x+SHIP_SIZE_W-error) && (y+error <= yA_1+aHeight1+aError && yA_1+aHeight1+aError <= y+SHIP_SIZE_H-110)) return true;
-//   else if ((x+error <= xA_1 && xA_1 <= x+SHIP_SIZE_W-error) && (y+error <= yA_1+aHeight1+aError && yA_1+aHeight1+aError <= y+SHIP_SIZE_H-110)) return true;
-//   else return false;
-// }
-
-// bool Game::collision(double x, double y, double xA_1, double yA_1) {
-//   // cout << aWidth1 << ' ' << aHeight1 << endl;
-//   if ((x-aWidth1 <= xA_1 && xA_1 <= x+SHIP_SIZE_W) && (y-aHeight1-offset <= yA_1 && yA_1 <= y-aHeight1+offset)){cout << "Collision" << endl;return true;}
-//   else if ((x-aWidth1 <= xA_1 && xA_1 <= x-aWidth1) && (y-aHeight1 <= yA_1 && yA_1 <= y+SHIP_SIZE_H)) {cout << "Collision" << endl;return true;}
-//   else if ((x+SHIP_SIZE_W <= xA_1 && xA_1<= x+SHIP_SIZE_W) && (y-aHeight1 <= yA_1 && yA_1 <= y+SHIP_SIZE_H)) {cout << "Collision" << endl;return true;}
-//   else return false;
-// }
-
 bool Game::collision(double x, double y, double xA, double yA, double aWidth, double aHeight) {
   // cout << aWidth1 << ' ' << aHeight1 << endl;
   if ((x+offset <= xA && xA <= x+SHIP_SIZE_W-offset) && (y+offset <= yA && yA <= y+SHIP_SIZE_H-offset)){cout << "Collision" << endl;return true;}
@@ -432,11 +429,11 @@ bool Game::collision(double x, double y, double xA, double yA, double aWidth, do
   else return false;
 }
 
-bool Game::repairCollision(double x, double y, double xRe, double yRe) {
-  if ((x+error <= xRe && xRe <= x+SHIP_SIZE_W-error) && (y+error <= yRe && yRe <= y+SHIP_SIZE_H-50)) return true;
-  else if ((x+error <= xRe+reWidth && xRe+reWidth <= x+SHIP_SIZE_W-error) && (y+error <= yRe && yRe <= y+SHIP_SIZE_H-50)) return true;
-  else if ((x+error <= xRe+reWidth && xRe+reWidth <= x+SHIP_SIZE_W-error) && (y+error <= yRe+reHeight && yRe+reHeight <= y+SHIP_SIZE_H-50)) return true;
-  else if ((x+error <= xRe && xRe <= x+SHIP_SIZE_W-error) && (y+error <= yRe+reHeight && yRe+reHeight <= y+SHIP_SIZE_H-50)) return true;
+bool Game::buffCollision(double x, double y, double xBuff, double yBuff) {
+  if ((x+error <= xBuff && xBuff <= x+SHIP_SIZE_W-error) && (y+error <= yBuff && yBuff <= y+SHIP_SIZE_H-50)) return true;
+  else if ((x+error <= xBuff+reWidth && xBuff+reWidth <= x+SHIP_SIZE_W-error) && (y+error <= yBuff && yBuff <= y+SHIP_SIZE_H-50)) return true;
+  else if ((x+error <= xBuff+reWidth && xBuff+reWidth <= x+SHIP_SIZE_W-error) && (y+error <= yBuff+reHeight && yBuff+reHeight <= y+SHIP_SIZE_H-50)) return true;
+  else if ((x+error <= xBuff && xBuff <= x+SHIP_SIZE_W-error) && (y+error <= yBuff+reHeight && yBuff+reHeight <= y+SHIP_SIZE_H-50)) return true;
   else return false;
 }
 
@@ -481,7 +478,7 @@ void Game::drawMsg(const char* msg, int x, int y, int r, int g, int b) {
  SDL_DestroyTexture(tex);
 }
 
-// ================================================
+// ================================================================
 
 void Game::resetAsteroid1(double &xA_1, double &yA_1, int &aScale1, double &step1) {
     yA_1 = -SHIP_SIZE_H;

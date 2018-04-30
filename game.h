@@ -21,6 +21,7 @@ const double SCALE = 0.35;
 #define ASTEROID_SIZE 350
 #define HEALTH_SIZE  30
 #define SHIP_SPEED_MOVE  12
+#define BULLET_BUFF_SIZE  100
 
 class Game {
 public:
@@ -36,15 +37,15 @@ public:
   void resetAsteroid1(double &xA_1, double &yA_1, int &aScale1, double &step1);
   void resetAsteroid2(double &xA_2, double &yA_2, int &aScale2, double &step2);
   bool collision(double x, double y, double xA, double yA, double aWidth, double aHeight);
-  bool repairCollision(double x, double y, double xBuff, double yBuff);
+  bool buffCollision(double x, double y, double xBuff, double yBuff);
   bool shootingCollision(double xFire, double yFire, double fireWidth, double fireHeight, double xA, double yA, double aWidth, double aHeight);
-  double xBg_1, yBg_1, xBg_2, yBg_2;
+  double xBg_1, yBg_1, xBg_2, yBg_2, xBulletBuff, yBulletBuff;
   double xA_1, yA_1, xA_2, yA_2, step1, step2, xRe, yRe, xA_1Last, yA_1Last, offset;
   int kmCounter, aScale1, aScale2;
   bool checkLeft, checkRight, checkPos1, checkPos2, loser, play;
   double aWidth1, aHeight1, aWidth2, aHeight2, reWidth, reHeight;
   int healthAmount, fireAmount, countShooting;
-  bool checkCollision1, checkCollision2, checkRepair, shooting, checkShooting;
+  bool checkCollision1, checkCollision2, checkRepair, shooting, checkShooting, checkBulletBuff;
   int aError, error, countCollision1, countCollision2, countShootingConllision;
   int goal;
   double xFire[27], yFire[27], fireWidth[27], fireHeight[27], fireScale, angle, holeAngle;
@@ -60,7 +61,7 @@ public:
   int ship_1, explosion_1, blue_1, fire_1[27];
   double x, y, xLast, yLast;
   Object bg1, bg2, asteroid1, asteroid2, hk, health[5], repair, bulletCur;
-  Object gameover, start, board, kk, gravity;
+  Object gameover, start, board, kk, gravity, bulletBuff;
   Object fire[27];
   Entity blue;
   Entity explosion;
