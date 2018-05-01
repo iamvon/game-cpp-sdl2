@@ -15,7 +15,7 @@ Game::Game() {
   SDL_SetWindowTitle(win, "Return to Earth");
 
   TTF_Init();
-  running=true; error = 31,aError = -30; checkPos1 = false, loser = false, play = false; checkRepair = false; countShootingConllision = 0; shooting= false; checkBulletBuff = false;
+  running=true; error = 31,aError = -30; checkPos1 = false, loser = false, play = false; checkRepair = false; countShootingConllision = 0; shooting= false; checkBulletBuff = false; checkBulletBuff1 = false;
   kmCounter = 0, healthAmount = 5; fireAmount = 27; goal = 2000; checkCollision1 = false; checkCollision2 = false; countCollision1 = 0, countCollision2 = 0; countShooting = 1;
   x = WIDTH/2 - SHIP_SIZE_W/2; y = HEIGHT - SHIP_SIZE_H - 250;
   xBg_1 = 0, yBg_1 = 0, xBg_2 = 0, yBg_2 = -HEIGHT;
@@ -23,6 +23,8 @@ Game::Game() {
   xBulletBuff = randomNumber(0, WIDTH - BULLET_BUFF_SIZE), yBulletBuff = -BULLET_BUFF_SIZE*5;
   xA_1 = randomNumber(0, WIDTH - ASTEROID_SIZE/2), yA_1 = -SHIP_SIZE_H;
   xA_2 = randomNumber(0, WIDTH - ASTEROID_SIZE/2), yA_2 = -SHIP_SIZE_H-100;
+  xWormHole = 200, yWormHole = 350;
+  shipWidth = SHIP_SIZE_W, shipHeight = SHIP_SIZE_H;
   for(int i = 1; i < fireAmount; ++i) {
     xFire[i] = x+SHIP_SIZE_W/2-47, yFire[i] = y+50;
     fireWidth[i] = 56, fireHeight[i] = 56;
@@ -90,9 +92,9 @@ Game::Game() {
   bulletCur.setImage("assets/bullet.png", ren);
   bulletCur.setDest(15, HEIGHT - 48, 43, 43);
 
-  gravity.setSource(0, 0, 750, 750);
-  gravity.setImage("assets/hole.png", ren);
-  gravity.setDest(200, 200, 300, 300);
+  wormHole.setSource(0, 0, 750, 750);
+  wormHole.setImage("assets/hole.png", ren);
+  wormHole.setDest(xWormHole, yWormHole, WORM_HOLE_SIZE, WORM_HOLE_SIZE);
 
   board.setSource(0, 0, 300, 330);
   board.setImage("assets/gear4.png", ren);
@@ -100,7 +102,6 @@ Game::Game() {
 
   bulletBuff.setSource(0, 0, 400, 400);
   bulletBuff.setImage("assets/bulletBuff1.png", ren);
-  // bulletBuff.setDest(200, 200, 100, 100);
 
   loop();
 }
@@ -187,7 +188,8 @@ void Game::loop() {
    }
 
 // ==================================   UPDATE SHOOTING'S STATE ====================================== //
- if(checkBulletBuff == true && countShooting == 26)  countShooting = 1, checkBulletBuff = false;
+ if(checkBulletBuff == true && countShooting == 26)  countShooting = 1, checkBulletBuff = false, checkBulletBuff1 = true; // Bullet buff
+ else checkBulletBuff1 = false;
   if(yFire[fireAmount-1] >= -fireHeight[fireAmount-1]) {
   if (countShooting < fireAmount) {
     for(int i = 1; i < countShooting; ++i) {
@@ -198,12 +200,12 @@ void Game::loop() {
         blue.setDest(xFire[i]-50, yFire[i]-70, 150, 150);  //  Explosion effect
         if(shootingCollision(xFire[i], yFire[i], fireWidth[i], fireHeight[i], xA_1, yA_1, aWidth1, aHeight1) == true)   resetAsteroid1(xA_1, yA_1, aScale1, step1);  // Destroy the asteroid1
         if(shootingCollision(xFire[i], yFire[i], fireWidth[i], fireHeight[i], xA_2, yA_2, aWidth2, aHeight2) == true)   resetAsteroid2(xA_2, yA_2, aScale2, step2);  // Destroy the asteroid2
-         xFire[i] = -300, yFire[i] = HEIGHT+100;   // Remove bullet  
+         xFire[i] = -300, yFire[i] = HEIGHT+100;   // Remove bullet
         } else  {
            blue.setDest(xFire[i]-50, yFire[i]-70, 0, 0);
            yFire[i]-=4;
            fire[i].setDest(xFire[i], yFire[i], fireWidth[i], fireHeight[i]);
-        } 
+        }
 
       //  cout << xFire[i]  << " | " << yFire[i] << endl;
      }
@@ -215,14 +217,14 @@ void Game::loop() {
   // xử lý vụ nổ va chạm
     if(checkCollision1 || checkCollision2){
       if(checkCollision1) {
-        explosion.setDest(x+10, y-20, 150, 150);
+        explosion.setDest(x-5, y-25, 190, 190);
       ++countCollision1;
       if(countCollision1 >= 60)  {   // kéo dài tgian cho hiệu ứng nổ
         checkCollision1 = false; countCollision1 = 0;
         }
       }
       if(checkCollision2){
-      explosion.setDest(x+10, y-20, 150, 150);
+      explosion.setDest(x-5, y-25, 190, 190);
       ++countCollision2;
       if(countCollision2 >= 60)  {   // kéo dài tgian cho hiệu ứng nổ
         checkCollision2 = false; countCollision2 = 0;
@@ -258,7 +260,7 @@ void Game::loop() {
 // ==================================   UPDATE SHIP'S STATE ===================================== //
    // ship bottom border
    if(y > HEIGHT-SHIP_SIZE_H-20) y = HEIGHT-SHIP_SIZE_H-20;
-   ship.setDest(x, y, SHIP_SIZE_W, SHIP_SIZE_H);
+   ship.setDest(x, y, shipWidth, shipHeight);
    if (y != HEIGHT-SHIP_SIZE_H-20) y += 0.3;   // move ship backward
 
    // update ship's health
@@ -276,9 +278,28 @@ void Game::loop() {
     health[i].setDest(WIDTH - 35 - i*35, HEIGHT - 35, HEALTH_SIZE, HEALTH_SIZE);
   }
 
-  // ==================================  UPDATE GRAVITY HOLE'S STATE ===================================== //
+  // ==================================  UPDATE WORMHOLE'S STATE ===================================== //
   holeAngle+=4;
+  // if((x+30 <= xWormHole+WORM_HOLE_SIZE/2 && xWormHole+WORM_HOLE_SIZE/2 <= x+SHIP_SIZE_W-30) && (y+30 <= yWormHole+WORM_HOLE_SIZE/2 && yWormHole+WORM_HOLE_SIZE/2 <= y+SHIP_SIZE_H-30)) {
+  //   // x = randomNumber(SHIP_SIZE_W, WIDTH-SHIP_SIZE_W);
+  //   // y = randomNumber(SHIP_SIZE_H, HEIGHT-SHIP_SIZE_H);
+  //    int i = 7, widthALt = shipWidth, heightAlt = shipHeight;
+  //       // while (width != 1 || height != 1) {
+  //         shipWidth = widthALt/i, shipHeight = heightAlt/i;
+  //         i+=1;
+  // }
 
+   wormHoleTeleportShip(ship, x, y, shipWidth, shipHeight, xWormHole, yWormHole);
+  
+  // if((xA_1 <= xWormHole+WORM_HOLE_SIZE/2 && xWormHole+WORM_HOLE_SIZE/2 <= xA_1+aWidth1) && (yA_1 <= yWormHole+WORM_HOLE_SIZE/2 && yWormHole+WORM_HOLE_SIZE/2 <= yA_1+aHeight1)) {
+  //   xA_1 = randomNumber(0, WIDTH-aWidth1);
+  //   yA_1 = randomNumber(yWormHole, HEIGHT-aHeight1);
+  // }
+
+  // if((xA_2 <= xWormHole+WORM_HOLE_SIZE/2 && xWormHole+WORM_HOLE_SIZE/2 <= xA_2+aWidth2) && (yA_2 <= yWormHole+WORM_HOLE_SIZE/2 && yWormHole+WORM_HOLE_SIZE/2 <= yA_2+aHeight2)) {
+  //   xA_2 = randomNumber(0, WIDTH-aWidth2);
+  //   yA_2 = randomNumber(yWormHole, HEIGHT-aHeight2);
+  // } 
    gameover.setDest(0, 0, WIDTH, HEIGHT);  // Game Over
 
     render();
@@ -328,8 +349,9 @@ void Game::render() {
   drawMsg(bullet, 65, HEIGHT - 40, 234, 123, 123);
   drawMsg(km, 38, 75, 234, 123, 123);
   drawMsg("KM", 108, 75, 234, 123, 123);
+  if (checkBulletBuff1 == true)  drawMsg("25 bullets", x+SHIP_SIZE_W/2, y-60, 234, 123, 123);
 
-  cout << mouseX << " | " << mouseY << endl;
+  // cout << mouseX << " | " << mouseY << endl;
   // cout << km << endl;
 
    // update ship's health
@@ -340,7 +362,7 @@ void Game::render() {
   if(checkCollision1 == true || checkCollision2 == true)  draw(explosion);
   drawSpin(bulletCur, 0);
   draw(blue);
-  drawSpin(gravity, holeAngle);
+  drawSpin(wormHole, holeAngle);
 
   if(play == false) draw(start);
 
@@ -370,38 +392,61 @@ void Game::input() {
     }
 
     if(e.type == SDL_QUIT) {running=false; cout << "Quitting" << endl;}
-    if(e.type == SDL_KEYDOWN) {
-      if(e.key.keysym.sym == SDLK_ESCAPE) running=false;
-      if(countShooting < fireAmount-1) {  // chặn spam space
-         if(e.key.keysym.sym == SDLK_SPACE){
-            ++countShooting;
-          xLast = x, yLast = y;
-            xFire[countShooting-1] = xLast + SHIP_SIZE_W/2-32, yFire[countShooting-1] = yLast+50;  // xử lý vị trí đạn mới tách khỏi tàu
-            // blue.setDest(xLast, yLast, 150, 150);
-            // SDL_Delay(1000000);
-      }
-    }
+    // if(e.type == SDL_KEYDOWN) {
+    //   if(e.key.keysym.sym == SDLK_ESCAPE) running=false;
+    //   if(countShooting < fireAmount-1) {  // chặn spam space
+    //      if(e.key.keysym.sym == SDLK_SPACE){
+    //         ++countShooting;
+    //       xLast = x, yLast = y;
+    //         xFire[countShooting-1] = xLast + SHIP_SIZE_W/2-32, yFire[countShooting-1] = yLast+50;  // xử lý vị trí đạn mới tách khỏi tàu
+    //         // blue.setDest(xLast, yLast, 150, 150);
+    //         // SDL_Delay(1000000);
+    //   }
+    // }
 
-      // di chuyển và bo viền
-      if (loser == false) {
-        if(0 >= x+10) x = -15;
-        if(x > WIDTH-SHIP_SIZE_W+10) x = WIDTH-SHIP_SIZE_W+10;
-        if(0 >= y+10) y = -15;
-
-        if(e.key.keysym.sym == SDLK_LEFT) x -= SHIP_SPEED_MOVE, y -= 3;
-        else if(e.key.keysym.sym == SDLK_RIGHT) x += SHIP_SPEED_MOVE, y -= 3;
-        else if (e.key.keysym.sym == SDLK_UP)  y -= 5;
-        else if (e.key.keysym.sym == SDLK_DOWN)  y += 1;
-      }
+    //If a key was pressed
+	if( e.type == SDL_KEYDOWN && e.key.repeat == 0 ) {
+        switch( e.key.keysym.sym ) {
+            case SDLK_ESCAPE: running=false; 
+            case SDLK_SPACE: 
+            if(countShooting < fireAmount-1) {  // chặn spam space
+              ++countShooting;
+              xLast = x, yLast = y;
+              xFire[countShooting-1] = xLast + SHIP_SIZE_W/2-32, yFire[countShooting-1] = yLast+50;  // xử lý vị trí đạn mới tách khỏi tàu 
+            }; break;
+            case SDLK_UP: yVel -= SHIP_VEL; break;
+            case SDLK_DOWN: yVel += SHIP_VEL; break;
+            case SDLK_LEFT: xVel -= SHIP_VEL; break;
+            case SDLK_RIGHT: xVel += SHIP_VEL; break;
+        }
     }
-     else if(e.type == SDL_KEYUP) {
-        //  if(e.key.keysym.sym == SDLK_LEFT && (0 <= x && x <= WIDTH-SHIP_SIZE_W)) x += 0;
-        //  else if(e.key.keysym.sym == SDLK_RIGHT && (0 <= x && x <= WIDTH-SHIP_SIZE_W)) x -= 0;
-          // if(e.key.keysym.sym == SDLK_SPACE)  blue.setDest(xLast, yLast, 0, 0);
-      }
-     SDL_GetMouseState(&mouseX, &mouseY);
+    //If a key was released
+    else if( e.type == SDL_KEYUP && e.key.repeat == 0 ) {
+        switch( e.key.keysym.sym ) {
+            case SDLK_UP: yVel += SHIP_VEL; break;
+            case SDLK_DOWN: yVel -= SHIP_VEL; break;
+            case SDLK_LEFT: xVel += SHIP_VEL; break;
+            case SDLK_RIGHT: xVel -= SHIP_VEL; break;
+        }
+    }
+    SDL_GetMouseState(&mouseX, &mouseY);
+   }
+
+    // Move the ship left or right
+    x += xVel;
+    // Bo viền 2 bên
+    if(( x < 0 ) || ( x + SHIP_SIZE_W > WIDTH )){
+        // Move back
+        x -= xVel;
+    }
+    // Move the ship up or down
+    y += yVel;
+    // Bo viền trên dưới 
+    if(( y < 0 ) || ( y + SHIP_SIZE_H > HEIGHT )) {
+        //Move back
+        y -= yVel;
+    }
   }
-}
 
 // ==================================== Update Sprite ======================================================= //
 void Game::update() {
@@ -496,4 +541,19 @@ void Game::resetAsteroid2(double &xA_2, double &yA_2, int &aScale2, double &step
     xA_2 = randomNumber(0, WIDTH);
     cout << "2: " << step2 << endl;
    if(xA_2 <= WIDTH/2) checkPos2 = true; else checkPos2 = false;
+}
+
+// ======================================================================
+void Game::wormHoleTeleportShip(Object &ship, double &x, double &y, int &width, int &height, double xWormHole, double yWormHole) {
+    if((x <= xWormHole+WORM_HOLE_SIZE/2 && xWormHole+WORM_HOLE_SIZE/2 <= x+width) && (y <= yWormHole+WORM_HOLE_SIZE/2 && yWormHole+WORM_HOLE_SIZE/2 <= y+height)) {
+        int i = 17, widthALt = width, heightAlt = height;
+        // while (width != 1 || height != 1) {
+          width = widthALt/i, height = heightAlt/i;
+    x = randomNumber(SHIP_SIZE_W, WIDTH-SHIP_SIZE_W);
+    y = randomNumber(SHIP_SIZE_H, HEIGHT-SHIP_SIZE_H);
+          // ship.setDest(x, y, widthALt, heightAlt);
+          cout << "In" << endl;
+          i+=10;
+        // }
+    }
 }
