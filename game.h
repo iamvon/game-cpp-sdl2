@@ -42,8 +42,8 @@ public:
   bool shootingCollision(double xFire, double yFire, double fireWidth, double fireHeight, double xA, double yA, double aWidth, double aHeight);
   double xBg_1, yBg_1, xBg_2, yBg_2, xBulletBuff, yBulletBuff;
   double xA_1, yA_1, xA_2, yA_2, step1, step2, xRe, yRe, xA_1Last, yA_1Last, offset;
-  int kmCounter, aScale1, aScale2;
-  bool checkLeft, checkRight, checkPos1, checkPos2, loser, play;
+  int kmCounter, aScale1, aScale2, countSpin;
+  bool checkLeft, checkRight, checkPos1, checkPos2, loser, play, checkHole;
   double aWidth1, aHeight1, aWidth2, aHeight2, reWidth, reHeight, xWormHole, yWormHole;
   int healthAmount, fireAmount, countShooting;
   bool checkCollision1, checkCollision2, checkRepair, shooting, checkShooting, checkBulletBuff, checkBulletBuff1;
@@ -53,6 +53,7 @@ public:
   string explosionPath;
   static const double SHIP_VEL = 1.9;
   double xVel, yVel;
+  // bool checkHole;
 
   private:
   SDL_Renderer* ren;
@@ -63,7 +64,7 @@ public:
   int mouseX, mouseY, shipWidth, shipHeight;
   int ship_1, explosion_1, blue_1, fire_1[27];
   double x, y, xLast, yLast;
-  Object bg1, bg2, asteroid1, asteroid2, health[5], repair, bulletCur;
+  Object playButton, exitButton, bg1, bg2, asteroid1, asteroid2, health[5], repair, bulletCur;
   Object gameover, start, board, kk, wormHole, bulletBuff;
   Object fire[27];
   Entity blue;
