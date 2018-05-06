@@ -8,6 +8,7 @@ public:
     ~Audio();
     void load(const char* filename);
     void play();
+    void stop();
 private:
     SDL_AudioSpec wavSpec;
     Uint32 wavLength;

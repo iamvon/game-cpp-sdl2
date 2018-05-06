@@ -14,3 +14,8 @@ void Audio::play() {
     SDL_QueueAudio(deviceId, wavBuffer, wavLength);
     SDL_PauseAudioDevice(deviceId, 0);
 }
+
+void Audio::stop() {
+    SDL_PauseAudioDevice(deviceId, 1);
+    // SDL_CloseAudioDevice(deviceId);
+}

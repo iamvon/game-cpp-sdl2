@@ -6,10 +6,13 @@
 #include <SDL2/SDL_ttf.h>
 #include "object.h"
 #include "entity.h"
+#include "audio.h"
+// #include "explosion.h"
 
 #define WIDTH 580
 #define HEIGHT 960
 #define FONT_SIZE 28
+#define FONT_SIZE_LARGE 50
 #define FPS 50
 #define IMG_SIZE_W 512
 #define IMG_SIZE_H 512
@@ -21,7 +24,7 @@ const double SCALE = 0.35;
 #define ASTEROID_SIZE 380
 #define HEALTH_SIZE  30
 #define BULLET_BUFF_SIZE  100
-#define WORM_HOLE_SIZE  200 
+#define WORM_HOLE_SIZE  300 
 
 class Game {
 public:
@@ -34,10 +37,12 @@ public:
   void draw(Object obj);
   void drawSpin(Object obj, int angle);
   void drawMsg(const char* msg, int x, int y, int r, int g, int b);
+  void drawMsgLarge(const char* msg, int x, int y, int r, int g, int b);
   void resetAsteroid1(double x, double y, double &xA_1, double &yA_1, int &aScale1, double &step1);
   void resetAsteroid2(double x, double y, double &xA_2, double &yA_2, int &aScale2, double &step2);
   void resetAsteroid3(double x, double y, double &xA_3, double &yA_3, int &aScale3, double &step3);
   void resetAsteroid4(double x, double y, double &xA_4, double &yA_4, int &aScale4, double &step4);
+  void resetWormHole(double &xWormHole, double &yWormHole);
   void wormHoleTeleportShip(Object &ship, double &x, double &y, int &width, int &height, double xWormHole, double yWormHole);
   bool collision(double x, double y, double xA, double yA, double aWidth, double aHeight);
   bool buffCollision(double x, double y, double xBuff, double yBuff);
@@ -49,9 +54,9 @@ public:
   bool checkLeft, checkRight, checkPos1, checkPos2, checkPos3, checkPos4, loser, play, checkHole, check;
   double aWidth1, aHeight1, aWidth2, aHeight2, aWidth3, aHeight3, aWidth4, aHeight4, reWidth, reHeight, xWormHole, yWormHole;
   int healthAmount, fireAmount, countShooting;
-  bool checkCollision1, checkCollision2, checkCollision3, checkCollision4, checkRepair, shooting, checkShooting, checkBulletBuff, checkBulletBuff1;
+  bool checkCollision1, checkCollision2, checkCollision3, checkCollision4, checkRepair, shooting, checkShooting, checkBulletBuff, checkBulletBuff1, checkHealthDecrease, checkNewPos;
   int aError, error, countCollision1, countCollision2, countCollision3, countCollision4, countShootingConllision;
-  int goal, countShootingFrame, frameCount;
+  int goal, countShootingFrame, frameCount, healthLast;
   double xFire[27], yFire[27], fireWidth[27], fireHeight[27], fireScale, angle, holeAngle;
   string explosionPath;
   static const double SHIP_VEL = 2.4;
@@ -62,17 +67,20 @@ public:
   SDL_Renderer* ren;
   SDL_Window* win;
   TTF_Font *font;
+  TTF_Font *fontLarge;
   bool running;
   int timerFPS, lastFrame;
   int mouseX, mouseY, shipWidth, shipHeight;
   int ship_1, explosion_1, blue_1, fire_1[27];
   double x, y, xLast, yLast;
   Object playButton, exitButton, bg1, bg2, asteroid4, asteroid3, asteroid2, asteroid1, health[5], repair, bulletCur;
-  Object gameover, start, board, kk, wormHole, bulletBuff;
+  Object gameover, start, board, kk, wormHole, bulletBuff, shipLoser;
   Object fire[27];
-  Entity blue;
-  Entity explosion;
-  Entity ship, hh;
+  // Explosion test;
+  // Entity blue;
+  Entity explosion, dd;
+  Entity ship, hh, hl;
+  Audio powerUp, asteroidExplosion, shipExplosion, readyGo, alarm;
 };
 
 #endif //GAME_H
