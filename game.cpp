@@ -14,13 +14,16 @@ Game::Game() {
   SDL_SetWindowTitle(win, "Return to Earth");
 
   TTF_Init();
-  running=true; error = 38,aError = -30; loser = false, play = false; checkRepair = false; countShootingConllision = 0; shooting= false; checkBulletBuff = false; checkBulletBuff1 = false;
+  running=true; error = 38,aError = -30; 
+  loser = false, play = false; checkRepair = false; countShootingConllision = 0; shooting= false; checkBulletBuff = false;
   kmCounter = 0, healthAmount = 5; fireAmount = 27; goal = 2000; countCollision1 = 0, countCollision2 = 0, countCollision3 = 0, countCollision4 = 0; countShooting = 1;
-  x = WIDTH/2 - SHIP_SIZE_W/2; y = HEIGHT - SHIP_SIZE_H - 250; checkHole = false; countSpin = 0; checkShooting = false;
-  xBg_1 = 0, yBg_1 = 0, xBg_2 = 0, yBg_2 = -HEIGHT; countShootingFrame = 0;
+  x = WIDTH/2 - SHIP_SIZE_W/2; y = HEIGHT - SHIP_SIZE_H - 250; checkHole = false; countSpin = 0;
+  xBg_1 = 0, yBg_1 = 0, xBg_2 = 0, yBg_2 = -HEIGHT; 
   xRe = randomNumber(0, WIDTH - HEALTH_SIZE*4), yRe = -HEALTH_SIZE*10;
   xBulletBuff = randomNumber(0, WIDTH - BULLET_BUFF_SIZE), yBulletBuff = -BULLET_BUFF_SIZE*5;
   xWormHole = 200, yWormHole = -WORM_HOLE_SIZE*2;
+  yGravityHole = 200, yGravityHole = -WORM_HOLE_SIZE*2;
+  xE = 3, yE = -559;
   shipWidth = SHIP_SIZE_W, shipHeight = SHIP_SIZE_H;
   for(int i = 1; i < fireAmount; ++i) {
     fireWidth[i] = 56, fireHeight[i] = 56;
@@ -47,11 +50,6 @@ Game::Game() {
    explosion.setImage("assets/images/explosion3.png",ren);
    explosion_1 = explosion.createCycle(1, 270, 270, 8, 9);
    explosion.setCurAnimation(explosion_1);
-
-  //  blue.setImage("assets/blue.png",ren);
-  //  blue.setDest(200, 200, 150, 150);
-  //  blue_1 = blue.createCycle(1, 256, 256, 17, 10);
-  //  blue.setCurAnimation(blue_1);
 
 //  for(int i = 0; i < fireAmount; ++i) {
 //       fire[i].setImage("assets/fireball.png",ren);
@@ -108,6 +106,9 @@ Game::Game() {
   wormHole.setSource(0, 0, 750, 750);
   wormHole.setImage("assets/images/hole.png", ren);
 
+  gravityHole.setSource(0, 0, 750, 750);
+  gravityHole.setImage("assets/images/hole2.png", ren);
+
   board.setSource(0, 0, 130, 143);
   board.setImage("assets/images/board.png", ren);
   board.setDest(25, 30, 130, 143);
@@ -122,6 +123,9 @@ Game::Game() {
   exitButton.setSource(0, 0, 170, 170);
   exitButton.setImage("assets/images/exit.png", ren);
   exitButton.setDest(209, 450, 170, 170);
+
+  earth.setSource(0, 0, 580, 559);
+  earth.setImage("assets/images/earth.png", ren);
 
   // test.setExplosion(test, ren);
 
@@ -146,7 +150,7 @@ void Game::loop() {
       lastTime=lastFrame;
       frameCount=0;
     // cout << countShootingFrame << endl;
-     if (loser == false && play == true) {
+     if (loser == false && play == true && winner == false) {
          if(checkHole == false) kmCounter += 1;   //  increase km
          else kmCounter -= 1;
           // countShootingFrame += 1;
@@ -161,22 +165,21 @@ void Game::loop() {
   } 
   bg1.setDest(xBg_1, yBg_1, WIDTH, HEIGHT); bg2.setDest(xBg_2, yBg_2, WIDTH, HEIGHT); 
    //  move background
-  if (loser == false) {
+  if (loser == false && winner == false) {
     if(checkHole == false)  yBg_1+=1.4, yBg_2+=1.4; else {if (yBg_1 >= 0) yBg_1-=1.4/3, yBg_2-=1.4/3;};
   }
   else {
     if(checkHole == false)  yBg_1+=0.25, yBg_2+=0.25; else {if (yBg_1 >= 0) yBg_1-=0.25/3, yBg_2-=0.25/3;};
-  }
-
+  } 
+ if (winner == true) yBg_1 += 0, yBg_2 += 0;
 // ==================================   UPDATE ASTEROID'S STATE ===================================== //
 
 // repeat random asteroid1
   if (yA_1 >= HEIGHT || collision(x, y, xA_1, yA_1, aWidth1, aHeight1))  {
     if (collision(x, y, xA_1, yA_1, aWidth1, aHeight1)){
-      xA_1Last = xA_1, yA_1Last = yA_1;
       checkCollision1 = true;   // kiểm tra sự kiện va chạm thật
     }
-    resetAsteroid1(x, y, xA_1, yA_1, aScale1, step1);
+   if(winner == false) resetAsteroid(x, y, xA_1, yA_1, aWidth1, aHeight1, aScale1, step1, checkPos1);
   }
 
   // move asteroid1
@@ -194,10 +197,9 @@ void Game::loop() {
   // repeat random asteroid2
   if (yA_2 >= HEIGHT || collision(x, y, xA_2, yA_2, aWidth2, aHeight2))  {
     if (collision(x, y, xA_2, yA_2, aWidth2, aHeight2)){
-      // xA_1Last = xA_1, yA_1Last = yA_1;
        checkCollision2 = true;   // kiểm tra sự kiện va chạm thật
     }
-    resetAsteroid2(x, y, xA_2, yA_2, aScale2, step2);
+   if(winner == false) resetAsteroid(x, y, xA_2, yA_2, aWidth2, aHeight2, aScale2, step2, checkPos2);
   }
 
   // move asteroid2
@@ -214,10 +216,9 @@ void Game::loop() {
    // repeat random asteroid3
   if (yA_3 >= HEIGHT || collision(x, y, xA_3, yA_3, aWidth3, aHeight3))  {
     if (collision(x, y, xA_3, yA_3, aWidth3, aHeight3)){
-      // xA_1Last = xA_1, yA_1Last = yA_1;
        checkCollision3 = true;   // kiểm tra sự kiện va chạm thật
     }
-    resetAsteroid3(x, y, xA_3, yA_3, aScale3, step3);
+   if(winner == false) resetAsteroid(x, y, xA_3, yA_3, aWidth3, aHeight3, aScale3, step3, checkPos3);
   }
 
   // move asteroid3
@@ -234,10 +235,9 @@ void Game::loop() {
     // repeat random asteroid4
   if (yA_4 >= HEIGHT || collision(x, y, xA_4, yA_4, aWidth4, aHeight4))  {
     if (collision(x, y, xA_4, yA_4, aWidth4, aHeight4)){
-      // xA_1Last = xA_1, yA_1Last = yA_1;
        checkCollision4 = true;   // kiểm tra sự kiện va chạm thật
     }
-    resetAsteroid4(x, y, xA_4, yA_4, aScale4, step4);
+   if(winner == false)  resetAsteroid(x, y, xA_4, yA_4, aWidth4, aHeight4, aScale4, step4, checkPos4);
   }
 
   // move asteroid4
@@ -252,8 +252,7 @@ void Game::loop() {
    }
 
 // ==================================   UPDATE SHOOTING'S STATE ====================================== //
- if(checkBulletBuff == true && countShooting == 26)  countShooting = 1, checkBulletBuff = false, checkBulletBuff1 = true; // Bullet buff
- else checkBulletBuff1 = false;
+ if(checkBulletBuff == true && countShooting == 26)  countShooting = 1, checkBulletBuff = false; // Bullet buff
   if(yFire[fireAmount-1] >= -fireHeight[fireAmount-1] && checkHole == false) {
   if (countShooting < fireAmount) {
     for(int i = 1; i < countShooting; ++i) {
@@ -262,41 +261,27 @@ void Game::loop() {
        if(shootingCollision(xFire[i], yFire[i], fireWidth[i], fireHeight[i], xA_1, yA_1, aWidth1, aHeight1) == true || shootingCollision(xFire[i], yFire[i], fireWidth[i], fireHeight[i], xA_2, yA_2, aWidth2, aHeight2) == true || shootingCollision(xFire[i], yFire[i], fireWidth[i], fireHeight[i], xA_3, yA_3, aWidth3, aHeight3) == true || shootingCollision(xFire[i], yFire[i], fireWidth[i], fireHeight[i], xA_4, yA_4, aWidth4, aHeight4) == true) {
         asteroidExplosion.play();
         cout << "BOOOOOOOOOOOOOOM" << endl;
-        countShootingFrame++;
-        // cout << countShootingFrame << endl;
-        // blue.setDest(xFire[i]-50, yFire[i]-70, 150, 150);  //  Explosion effect
-      // if(countShootingFrame > 0) explosion.setDest(xFire[i], yFire[i], 180, 180);
-          // cout << frameCount << endl;
         //  explosion.setDest(xFire[i], yFire[i], 180, 180);
-        if(shootingCollision(xFire[i], yFire[i], fireWidth[i], fireHeight[i], xA_1, yA_1, aWidth1, aHeight1) == true) {
-           if(!minimalistAsteroidSize(aWidth1, aHeight1))  aScale1+=1.6; else resetAsteroid1(x, y, xA_1, yA_1, aScale1, step1);  // Destroy the asteroid1
-        }
-        if(shootingCollision(xFire[i], yFire[i], fireWidth[i], fireHeight[i], xA_2, yA_2, aWidth2, aHeight2) == true)  if(!minimalistAsteroidSize(aWidth2, aHeight2))  aScale2+=1.6; else resetAsteroid2(x, y, xA_2, yA_2, aScale2, step2);  // Destroy the asteroid2
-        if(shootingCollision(xFire[i], yFire[i], fireWidth[i], fireHeight[i], xA_3, yA_3, aWidth3, aHeight3) == true)  if(!minimalistAsteroidSize(aWidth3, aHeight3))  aScale3+=1.6; else resetAsteroid3(x, y, xA_3, yA_3, aScale3, step3);  // Destroy the asteroid3
-        if(shootingCollision(xFire[i], yFire[i], fireWidth[i], fireHeight[i], xA_4, yA_4, aWidth4, aHeight4) == true)  if(!minimalistAsteroidSize(aWidth4, aHeight4))  aScale4+=1.6; else resetAsteroid4(x, y, xA_4, yA_4, aScale4, step4);  // Destroy the asteroid4
+        if(shootingCollision(xFire[i], yFire[i], fireWidth[i], fireHeight[i], xA_1, yA_1, aWidth1, aHeight1) == true)  if(!minimalistAsteroidSize(aWidth1, aHeight1))  aScale1+=1.6; else resetAsteroid(x, y, xA_1, yA_1, aWidth1, aHeight1, aScale1, step1, checkPos1);  // Destroy the asteroid1
+        if(shootingCollision(xFire[i], yFire[i], fireWidth[i], fireHeight[i], xA_2, yA_2, aWidth2, aHeight2) == true)  if(!minimalistAsteroidSize(aWidth2, aHeight2))  aScale2+=1.6; else resetAsteroid(x, y, xA_2, yA_2, aWidth2, aHeight2, aScale2, step2, checkPos2);  // Destroy the asteroid2
+        if(shootingCollision(xFire[i], yFire[i], fireWidth[i], fireHeight[i], xA_3, yA_3, aWidth3, aHeight3) == true)  if(!minimalistAsteroidSize(aWidth3, aHeight3))  aScale3+=1.6; else resetAsteroid(x, y, xA_3, yA_3, aWidth3, aHeight3, aScale3, step3, checkPos3);  // Destroy the asteroid3
+        if(shootingCollision(xFire[i], yFire[i], fireWidth[i], fireHeight[i], xA_4, yA_4, aWidth4, aHeight4) == true)  if(!minimalistAsteroidSize(aWidth4, aHeight4))  aScale4+=1.6; else resetAsteroid(x, y, xA_4, yA_4, aWidth4, aHeight4, aScale4, step4, checkPos4);  // Destroy the asteroid4
          xFire[i] = -300, yFire[i] = HEIGHT+100;   // Remove bullet
         } else  {
           checkShooting = false;
-          //  blue.setDest(xFire[i]-50, yFire[i]-70, 0, 0);
            yFire[i]-=5;
-           fire[i].setDest(xFire[i], yFire[i], fireWidth[i], fireHeight[i]);
-          //  explosion.setDest(x, y, 0, 0);   
+           fire[i].setDest(xFire[i], yFire[i], fireWidth[i], fireHeight[i]); 
         }
-      //  cout << xFire[i]  << " | " << yFire[i] << endl;
-      
      }
-    // cout << countShootingConllision << endl;
    }
-    // else  blue.setDest(xLast, yLast, 0, 0);
-
   }
 // ==================================   UPDATE COLLISION'S STATE ===================================== //
   // xử lý vụ nổ va chạm
-    if((checkCollision1 || checkCollision2 || checkCollision3 || checkCollision4) && checkHealthDecrease){
+    if((checkCollision1 || checkCollision2 || checkCollision3 || checkCollision4)){
       if(checkCollision1) {
         explosion.setDest(x-45, y-60, 270, 270);
       ++countCollision1;
-      if(countCollision1 >= 70)  {   // kéo dài tgian cho hiệu ứng nổ
+      if(countCollision1 >= 100)  {   // kéo dài tgian cho hiệu ứng nổ
         checkCollision1 = false; countCollision1 = 0;
         }
       }
@@ -359,9 +344,8 @@ void Game::loop() {
    // update ship's health
    for (int i = 0; i < healthAmount; ++i) {
     if(collision(x, y, xA_1, yA_1, aWidth1, aHeight1) || collision(x, y, xA_2, yA_2, aWidth2, aHeight2) || collision(x, y, xA_3, yA_3, aWidth3, aHeight3) || collision(x, y, xA_4, yA_4, aWidth4, aHeight4)) {
-      // shipExplosion.play();
+        shipExplosion.play();
        --healthAmount;
-      checkHealthDecrease = true;
        break;
        } 
     if(checkRepair == true) {
@@ -376,12 +360,29 @@ void Game::loop() {
 
   // ==================================  UPDATE WORMHOLE'S STATE ===================================== //
   holeAngle+=4; 
-  if(1000 <= (goal - kmCounter) && (goal - kmCounter) <= 1660) yWormHole += 0.6, wormHole.setDest(xWormHole, yWormHole, WORM_HOLE_SIZE, WORM_HOLE_SIZE);
-  else wormHole.setDest(-400, 400, WORM_HOLE_SIZE, WORM_HOLE_SIZE);
+  if(1000 <= (goal - kmCounter) && (goal - kmCounter) <= 1660) {
+    if(yWormHole > HEIGHT)  resetHole(xWormHole, yWormHole);
+    yWormHole += 0.6, wormHole.setDest(xWormHole, yWormHole, WORM_HOLE_SIZE, WORM_HOLE_SIZE);
+  }
+  else xWormHole = -1000, yWormHole = -1000, wormHole.setDest(xWormHole, yWormHole, WORM_HOLE_SIZE, WORM_HOLE_SIZE);
   wormHoleTeleportShip(ship, x, y, shipWidth, shipHeight, xWormHole, yWormHole);
-  if(yWormHole > HEIGHT)  resetWormHole(xWormHole, yWormHole);
 
-   gameover.setDest(0, 0, WIDTH, HEIGHT);  // Game Over
+  if(200 <= (goal - kmCounter) && (goal - kmCounter) <= 965)  {
+    if(yGravityHole > HEIGHT)  resetHole(xGravityHole, yGravityHole);
+    yGravityHole += 0.6, gravityHole.setDest(xGravityHole ,yGravityHole, WORM_HOLE_SIZE, WORM_HOLE_SIZE);
+  }
+  else xGravityHole = -1000, yGravityHole = -1000, gravityHole.setDest(-400, 400, WORM_HOLE_SIZE, WORM_HOLE_SIZE);
+  gravityHoleAffect(xA_1, yA_1, xGravityHole, yGravityHole, aWidth1, aHeight1);
+  gravityHoleAffect(xA_2, yA_2, xGravityHole, yGravityHole, aWidth2, aHeight2);
+  gravityHoleAffect(xA_3, yA_3, xGravityHole, yGravityHole, aWidth3, aHeight3);
+  gravityHoleAffect(xA_4, yA_4, xGravityHole, yGravityHole, aWidth4, aHeight4);
+  
+  gameover.setDest(0, 0, WIDTH, HEIGHT);  // Game Over
+
+  // Winner
+  if(((goal - kmCounter) <= 0) && healthAmount >= 0)  winner = true; else winner = false; 
+  earth.setDest(xE, yE, 580, 559);
+  if(winner == true && yE <= -20 && loser == false) yE += 1;  else yE += 0; 
 
     render();
     input();
@@ -426,8 +427,13 @@ drawSpin(wormHole, holeAngle);
   }
  else if(loser == true) draw(shipLoser);
  else draw(ship);
-// if(loser == false) draw(ship); else draw(shipLoser);
-  draw(board);
+
+ drawSpin(gravityHole,holeAngle);
+
+  draw(earth);
+  if((goal - kmCounter) != 0)  draw(board); 
+  if((goal - kmCounter) == 100) fontLarge = TTF_OpenFont("assets/fonts/complex_promo.ttf", 50);
+  if(yE >= -25) drawMsgLarge("we came home",70,250,234, 123, 123);
   // test.showExplosion(test, x, y);
 
   stringstream ss, ssBullet;
@@ -440,9 +446,8 @@ drawSpin(wormHole, holeAngle);
   const char* bullet = ssBulletStr.c_str();
 
   drawMsg(bullet, 65, HEIGHT - 40, 234, 123, 123);
-  drawMsg(km, 38, 75, 234, 123, 123);
-  drawMsg("KM", 108, 75, 234, 123, 123);
-  if (checkBulletBuff1 == true)  drawMsg("25 bullets", x+SHIP_SIZE_W/2, y-60, 234, 123, 123);
+  if((goal - kmCounter) != 0)
+  drawMsg(km, 38, 75, 234, 123, 123), drawMsg("KM", 108, 75, 234, 123, 123);
 
 // Wormholes alert
   if(1680 <= (goal - kmCounter) && (goal - kmCounter) <= 1700) {
@@ -453,9 +458,20 @@ drawSpin(wormHole, holeAngle);
       drawMsgLarge("wormholes is coming", 28, 310, 234, 123, 123);
     }
   }
+
+  // GravityHoles alert
+  if(965 <= (goal - kmCounter) && (goal - kmCounter) <= 999) {
+    //  alarm.play();
+   if((goal - kmCounter) == 999) fontLarge = TTF_OpenFont("assets/fonts/complex_promo.ttf", 37);
+     drawMsgLarge("warning", 183, 250, 234, 123, 123);
+    if((goal - kmCounter)% 2 == 0) {
+      drawMsgLarge("gravityholes is coming", 24, 310, 234, 123, 123);
+    }
+  }
     // else alarm.stop();
 
-if((1987 <= (goal - kmCounter) && (goal - kmCounter) <= 1999) && play == true) readyGo.play(); else readyGo.stop(); 
+// if(((goal - kmCounter) == 2000) && play == true) readyGo.play();
+// if(((goal - kmCounter) == 1985) && play == true) readyGo.stop();
 if(1995 <= (goal - kmCounter) && (goal - kmCounter) <= 2000) drawMsgLarge("ready", 200, 400, 234, 123, 123);
   if(1990 <= (goal - kmCounter) && (goal - kmCounter) <= 1994) drawMsgLarge("go", 260, 400, 234, 123, 123);
 // theme.play();
@@ -478,7 +494,7 @@ if(1995 <= (goal - kmCounter) && (goal - kmCounter) <= 2000) drawMsgLarge("ready
   if(healthAmount == 0) {
     loser = true;
     draw(gameover); 
-    // drawMsgLarge("try again",140,710,234, 123, 123);
+     drawMsgLarge("try again",140,710,234, 123, 123);
   }
 
   frameCount++;
@@ -499,7 +515,27 @@ void Game::input() {
 
     // Choose menu
    if(e.type == SDL_MOUSEBUTTONDOWN) {
-      //  if((145 <= mouseX && mouseX <= 435) && (720 <= mouseY && mouseY <= 750) && loser == true) play = true, loser = false, healthAmount = 5, fireAmount = 27, kmCounter = 0, resetAsteroid1(x, y, xA_1, yA_1, aScale1, step1), resetAsteroid2(x, y, xA_2, yA_2, aScale2, step2), resetAsteroid3(x, y, xA_3, yA_3, aScale3, step3), resetAsteroid4(x, y, xA_4, yA_4, aScale4, step4);
+    //  Restart game
+       if((145 <= mouseX && mouseX <= 435) && (720 <= mouseY && mouseY <= 750) && loser == true) {
+        running=true;
+        loser = false, healthAmount = 5, play = false, kmCounter = 0;
+        resetAsteroid(x, y, xA_1, yA_1, aWidth1, aHeight1, aScale1, step1, checkPos1);  
+        resetAsteroid(x, y, xA_2, yA_2, aWidth2, aHeight2, aScale2, step2, checkPos2);  
+        resetAsteroid(x, y, xA_3, yA_3, aWidth3, aHeight3, aScale3, step3, checkPos3);  
+        resetAsteroid(x, y, xA_4, yA_4, aWidth4, aHeight4, aScale4, step4, checkPos4); 
+        xRe = randomNumber(0, WIDTH - HEALTH_SIZE*4), yRe = -HEALTH_SIZE*10;
+        repair.setDest(xRe, yRe, reWidth, reHeight);
+        xBulletBuff = randomNumber(0, WIDTH - BULLET_BUFF_SIZE), yBulletBuff = -BULLET_BUFF_SIZE*5;
+        bulletBuff.setDest(xBulletBuff, yBulletBuff, BULLET_BUFF_SIZE, BULLET_BUFF_SIZE);
+        loser = false, play = false; checkRepair = false; countShootingConllision = 0; shooting= false; checkBulletBuff = false;
+        kmCounter = 0, healthAmount = 5; fireAmount = 27; goal = 2000; countCollision1 = 0, countCollision2 = 0, countCollision3 = 0, countCollision4 = 0; countShooting = 1;
+        x = WIDTH/2 - SHIP_SIZE_W/2; y = HEIGHT - SHIP_SIZE_H - 250; checkHole = false; countSpin = 0;
+        xBg_1 = 0, yBg_1 = 0, xBg_2 = 0, yBg_2 = -HEIGHT;
+        xWormHole = 200, yWormHole = -WORM_HOLE_SIZE*2;
+        yGravityHole = 200, yGravityHole = -WORM_HOLE_SIZE*2;
+        xE = 3, yE = -559;
+       }
+
        if((240 <= mouseX && mouseX <= 350) && (372 <= mouseY && mouseY <= 442)) play = true;
        else if((240 <= mouseX && mouseX <= 350) && (500 <= mouseY && mouseY <= 570))  running = false;
     }
@@ -555,9 +591,8 @@ if(loser == false) {
 
 // ==================================== Update Sprite ======================================================= //
 void Game::update() {
+  explosion.updateAnimation();
    ship.updateAnimation();
-   explosion.updateAnimation();
-  //  blue.updateAnimation();
   //  test.showExplosion(test, x, y);
   // if(countShooting < fireAmount) {
   //   for(int i = 0; i < countShooting; ++i) {
@@ -570,7 +605,6 @@ void Game::update() {
 // ==================================== Collision Logic ===================================================== //
 
 bool Game::collision(double x, double y, double xA, double yA, double aWidth, double aHeight) {
-  // cout << aWidth1 << ' ' << aHeight1 << endl;
   if ((x+offset <= xA && xA <= x+SHIP_SIZE_W-offset) && (y+offset <= yA && yA <= y+SHIP_SIZE_H-offset)) return true;
   else if ((x+offset <= xA+aWidth && xA+aWidth <= x+SHIP_SIZE_W-offset) && (y+offset <= yA && yA <= y+SHIP_SIZE_H-offset)) return true;
   else if ((x+offset <= xA+aWidth && xA+aWidth <= x+SHIP_SIZE_W-offset) && (y+offset <= yA+aHeight && yA+aHeight <= y+SHIP_SIZE_H-offset)) return true;
@@ -605,7 +639,6 @@ void Game::draw(Object obj) {
 }
 
 void Game::drawSpin(Object obj, int angle) {
-//  angle = 0;
  SDL_Rect dest = obj.getDest();
  SDL_Rect src = obj.getSource();
  SDL_RenderCopyEx(ren, obj.getTex(), &src, &dest, angle, NULL, SDL_FLIP_NONE);
@@ -653,49 +686,18 @@ void Game::drawMsgLarge(const char* msg, int x, int y, int r, int g, int b) {
 
 // ================================================================
 
-void Game::resetAsteroid1(double x, double y, double &xA_1, double &yA_1, int &aScale1, double &step1) {
-    yA_1 = -aHeight1-100;
-    aScale1 = randomNumber(2,5);
-    step1 = randomNumber(2,5);
-    if(x <= WIDTH/2) xA_1 = randomNumber(aWidth1-SHIP_SIZE_W, WIDTH/2-SHIP_SIZE_W);
-    else xA_1 = randomNumber(WIDTH/2+SHIP_SIZE_W, WIDTH-aWidth1);
-    // cout << "1: " << step1 << endl;
-   if(xA_1 <= WIDTH/2) checkPos1 = true; else checkPos1 = false;
+void Game::resetAsteroid(double x, double y, double &xA, double &yA, double aWidth, double aHeight, int &aScale, double &step, bool &checkPos) {
+    yA = -aHeight-100;
+    aScale = randomNumber(2,5);
+    step = randomNumber(2,5);
+    if(x <= WIDTH/2) xA = randomNumber(aWidth-SHIP_SIZE_W, WIDTH/2-SHIP_SIZE_W);
+    else xA = randomNumber(WIDTH/2+SHIP_SIZE_W, WIDTH-aWidth);
+   if(xA <= WIDTH/2) checkPos = true; else checkPos = false;
 }
 
-void Game::resetAsteroid2(double x, double y, double &xA_2, double &yA_2, int &aScale2, double &step2) {
-    yA_2 = -SHIP_SIZE_H*3.5;
-    aScale2 = randomNumber(2,5);
-    step2 = randomNumber(2,5);
-    if(x <= WIDTH/2) xA_2 = randomNumber(aWidth2-SHIP_SIZE_W, WIDTH/2-SHIP_SIZE_W);
-    else xA_2 = randomNumber(WIDTH/2+SHIP_SIZE_W, WIDTH-aWidth2);
-    // cout << "2: " << step2 << endl;
-   if(xA_2 <= WIDTH/2) checkPos2 = true; else checkPos2 = false;
-}
-
-void Game::resetAsteroid3(double x, double y, double &xA_3, double &yA_3, int &aScale3, double &step3) {
-    yA_3 = -SHIP_SIZE_H*6.5;
-    aScale3 = randomNumber(2,5);
-    step3 = randomNumber(2,5);
-    if(x <= WIDTH/2) xA_3 = randomNumber(aWidth3-SHIP_SIZE_W, WIDTH/2-SHIP_SIZE_W);
-    else xA_3 = randomNumber(WIDTH/2+SHIP_SIZE_W, WIDTH-aWidth3);
-    // cout << "3: " << step3 << endl;
-   if(xA_3 <= WIDTH/2) checkPos3 = true; else checkPos3 = false;
-}
-
-void Game::resetAsteroid4(double x, double y, double &xA_4, double &yA_4, int &aScale4, double &step4) {
-    yA_4 = -SHIP_SIZE_H*8.5;
-    aScale4 = randomNumber(2,5);
-    step4 = randomNumber(2,5);
-    if(x <= WIDTH/2) xA_4 = randomNumber(aWidth4-SHIP_SIZE_W, WIDTH/2-SHIP_SIZE_W);
-    else xA_4 = randomNumber(WIDTH/2+SHIP_SIZE_W, WIDTH-aWidth4);
-    // cout << "3: " << step3 << endl;
-   if(xA_4 <= WIDTH/2) checkPos4 = true; else checkPos4 = false;
-}
-
-void Game::resetWormHole(double &xWormHole, double &yWormHole) {
-    xWormHole = randomNumber(0, WIDTH-WORM_HOLE_SIZE);
-    yWormHole = -WORM_HOLE_SIZE;
+void Game::resetHole(double &xHole, double &yHole) {
+    xHole = randomNumber(0, WIDTH-WORM_HOLE_SIZE);
+    yHole = -WORM_HOLE_SIZE;
 }
 
 // ======================================================================
@@ -721,6 +723,12 @@ void Game::wormHoleTeleportShip(Object &ship, double &x, double &y, int &width, 
           checkHole = true;  
     }
     else checkHole = false;
+}
+
+void Game::gravityHoleAffect(double &xA, double &yA, double xGravityHole, double yGravityHole, double width, double height) {
+    if((xA-offset <= xGravityHole+WORM_HOLE_SIZE/2 && xGravityHole+WORM_HOLE_SIZE/2 <= xA+width+offset) && (yA-offset <= yGravityHole+WORM_HOLE_SIZE/2 && yGravityHole+WORM_HOLE_SIZE/2 <= yA+height+offset)) {
+       if(xA < x) xA += 3; else xA -= 3; 
+     }
 }
 // =========================================================================
 bool Game::minimalistAsteroidSize(double aWidth, double aHeight) {
