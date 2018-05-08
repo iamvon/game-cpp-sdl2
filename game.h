@@ -59,6 +59,7 @@ public:
   string explosionPath;
   static const double SHIP_VEL = 2.5;
   double xVel, yVel;
+  int counter;
   // bool checkHole;
 
   private:

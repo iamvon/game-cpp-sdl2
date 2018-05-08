@@ -14,15 +14,15 @@ Game::Game() {
   SDL_SetWindowTitle(win, "Return to Earth");
 
   TTF_Init();
-  running=true; error = 38,aError = -30; 
+  running=true; error = 38,aError = -30; counter = 0;
   loser = false, play = false; checkRepair = false; countShootingConllision = 0; shooting= false; checkBulletBuff = false;
   kmCounter = 0, healthAmount = 5; fireAmount = 27; goal = 2000; countCollision1 = 0, countCollision2 = 0, countCollision3 = 0, countCollision4 = 0; countShooting = 1;
   x = WIDTH/2 - SHIP_SIZE_W/2; y = HEIGHT - SHIP_SIZE_H - 250; checkHole = false; countSpin = 0;
   xBg_1 = 0, yBg_1 = 0, xBg_2 = 0, yBg_2 = -HEIGHT; 
   xRe = randomNumber(0, WIDTH - HEALTH_SIZE*4), yRe = -HEALTH_SIZE*10;
   xBulletBuff = randomNumber(0, WIDTH - BULLET_BUFF_SIZE), yBulletBuff = -BULLET_BUFF_SIZE*5;
-  xWormHole = 200, yWormHole = -WORM_HOLE_SIZE*2;
-  yGravityHole = 200, yGravityHole = -WORM_HOLE_SIZE*2;
+  xWormHole = 200, yWormHole = -WORM_HOLE_SIZE;
+  yGravityHole = 200, yGravityHole = -WORM_HOLE_SIZE;
   xE = 3, yE = -559;
   shipWidth = SHIP_SIZE_W, shipHeight = SHIP_SIZE_H;
   for(int i = 1; i < fireAmount; ++i) {
@@ -345,7 +345,7 @@ void Game::loop() {
    for (int i = 0; i < healthAmount; ++i) {
     if(collision(x, y, xA_1, yA_1, aWidth1, aHeight1) || collision(x, y, xA_2, yA_2, aWidth2, aHeight2) || collision(x, y, xA_3, yA_3, aWidth3, aHeight3) || collision(x, y, xA_4, yA_4, aWidth4, aHeight4)) {
         shipExplosion.play();
-       --healthAmount;
+      --healthAmount;
        break;
        } 
     if(checkRepair == true) {
@@ -360,14 +360,14 @@ void Game::loop() {
 
   // ==================================  UPDATE WORMHOLE'S STATE ===================================== //
   holeAngle+=4; 
-  if(1000 <= (goal - kmCounter) && (goal - kmCounter) <= 1660) {
+  if(990 <= (goal - kmCounter) && (goal - kmCounter) <= 1700) {
     if(yWormHole > HEIGHT)  resetHole(xWormHole, yWormHole);
     yWormHole += 0.6, wormHole.setDest(xWormHole, yWormHole, WORM_HOLE_SIZE, WORM_HOLE_SIZE);
   }
   else xWormHole = -1000, yWormHole = -1000, wormHole.setDest(xWormHole, yWormHole, WORM_HOLE_SIZE, WORM_HOLE_SIZE);
   wormHoleTeleportShip(ship, x, y, shipWidth, shipHeight, xWormHole, yWormHole);
 
-  if(200 <= (goal - kmCounter) && (goal - kmCounter) <= 965)  {
+  if(190 <= (goal - kmCounter) && (goal - kmCounter) <= 970)  {
     if(yGravityHole > HEIGHT)  resetHole(xGravityHole, yGravityHole);
     yGravityHole += 0.6, gravityHole.setDest(xGravityHole ,yGravityHole, WORM_HOLE_SIZE, WORM_HOLE_SIZE);
   }
@@ -387,7 +387,7 @@ void Game::loop() {
     render();
     input();
     update();
-    cout << mouseX << "|" << mouseY << endl;
+   // cout << mouseX << "|" << mouseY << endl;
   }
 }
 
@@ -450,7 +450,7 @@ drawSpin(wormHole, holeAngle);
   drawMsg(km, 38, 75, 234, 123, 123), drawMsg("KM", 108, 75, 234, 123, 123);
 
 // Wormholes alert
-  if(1680 <= (goal - kmCounter) && (goal - kmCounter) <= 1700) {
+  if(1670 <= (goal - kmCounter) && (goal - kmCounter) <= 1700) {
     //  alarm.play();
     if((goal - kmCounter) == 1700) fontLarge = TTF_OpenFont("assets/fonts/complex_promo.ttf", 40);
      drawMsgLarge("warning", 173, 250, 234, 123, 123);
@@ -458,9 +458,10 @@ drawSpin(wormHole, holeAngle);
       drawMsgLarge("wormholes is coming", 28, 310, 234, 123, 123);
     }
   }
+//  else alarm.stop();
 
   // GravityHoles alert
-  if(965 <= (goal - kmCounter) && (goal - kmCounter) <= 999) {
+  if(970 <= (goal - kmCounter) && (goal - kmCounter) <= 999) {
     //  alarm.play();
    if((goal - kmCounter) == 999) fontLarge = TTF_OpenFont("assets/fonts/complex_promo.ttf", 37);
      drawMsgLarge("warning", 183, 250, 234, 123, 123);
@@ -470,8 +471,8 @@ drawSpin(wormHole, holeAngle);
   }
     // else alarm.stop();
 
-// if(((goal - kmCounter) == 2000) && play == true) readyGo.play();
-// if(((goal - kmCounter) == 1985) && play == true) readyGo.stop();
+if(((goal - kmCounter) == 2000) && play == true) readyGo.play();
+ if(((goal - kmCounter) == 1987) && play == true) readyGo.stop();
 if(1995 <= (goal - kmCounter) && (goal - kmCounter) <= 2000) drawMsgLarge("ready", 200, 400, 234, 123, 123);
   if(1990 <= (goal - kmCounter) && (goal - kmCounter) <= 1994) drawMsgLarge("go", 260, 400, 234, 123, 123);
 // theme.play();
@@ -531,8 +532,8 @@ void Game::input() {
         kmCounter = 0, healthAmount = 5; fireAmount = 27; goal = 2000; countCollision1 = 0, countCollision2 = 0, countCollision3 = 0, countCollision4 = 0; countShooting = 1;
         x = WIDTH/2 - SHIP_SIZE_W/2; y = HEIGHT - SHIP_SIZE_H - 250; checkHole = false; countSpin = 0;
         xBg_1 = 0, yBg_1 = 0, xBg_2 = 0, yBg_2 = -HEIGHT;
-        xWormHole = 200, yWormHole = -WORM_HOLE_SIZE*2;
-        yGravityHole = 200, yGravityHole = -WORM_HOLE_SIZE*2;
+        xWormHole = 200, yWormHole = -WORM_HOLE_SIZE;
+        yGravityHole = 200, yGravityHole = -WORM_HOLE_SIZE;
         xE = 3, yE = -559;
        }
 
@@ -561,6 +562,8 @@ void Game::input() {
     }
     // When a key was released
     else if( e.type == SDL_KEYUP && e.key.repeat == 0 ) {
+counter++;
+cout << counter << endl;
         switch( e.key.keysym.sym ) {
             case SDLK_UP: yVel += SHIP_VEL; break;
             case SDLK_DOWN: yVel -= SHIP_VEL; break;
@@ -570,6 +573,7 @@ void Game::input() {
     }
     SDL_GetMouseState(&mouseX, &mouseY);
    }
+
 
 if(loser == false) {
      // Move the ship left or right
