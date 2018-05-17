@@ -281,7 +281,7 @@ void Game::loop() {
       if(checkCollision1) {
         explosion.setDest(x-45, y-60, 270, 270);
       ++countCollision1;
-      if(countCollision1 == 1 && loser == false) --healthAmount, shipExplosion.play();
+      if(countCollision1 == 3 && loser == false && play == true) shipExplosion.play(), --healthAmount;
       if(countCollision1 >= 80)  {   // kéo dài tgian cho hiệu ứng nổ
         checkCollision1 = false; countCollision1 = 0;
         }
@@ -289,7 +289,7 @@ void Game::loop() {
       if(checkCollision2){
       explosion.setDest(x-45, y-60, 270, 270);
       ++countCollision2;
-      if(countCollision2 == 1 && loser == false) --healthAmount, shipExplosion.play();
+      if(countCollision2 == 3 && loser == false && play == true) shipExplosion.play(), --healthAmount;
       if(countCollision2 >= 80)  {   // kéo dài tgian cho hiệu ứng nổ
         checkCollision2 = false; countCollision2 = 0;
         }
@@ -297,7 +297,7 @@ void Game::loop() {
     if(checkCollision3){
       explosion.setDest(x-45, y-60, 270, 270);
       ++countCollision3;
-      if(countCollision3 == 1 && loser == false) --healthAmount, shipExplosion.play();
+      if(countCollision3 == 3 && loser == false && play == true) shipExplosion.play(), --healthAmount;
       if(countCollision3 >= 80)  {   // kéo dài tgian cho hiệu ứng nổ
         checkCollision3 = false; countCollision3 = 0;
         }
@@ -305,7 +305,7 @@ void Game::loop() {
     if(checkCollision4){
       explosion.setDest(x-45, y-60, 270, 270);
       ++countCollision4;
-      if(countCollision4 == 1 && loser == false) --healthAmount, shipExplosion.play();
+      if(countCollision4 == 3 && loser == false && play == true) shipExplosion.play(), --healthAmount;
       if(countCollision4 >= 80)  {   // kéo dài tgian cho hiệu ứng nổ
         checkCollision4 = false; countCollision4 = 0;
         }
