@@ -281,28 +281,32 @@ void Game::loop() {
       if(checkCollision1) {
         explosion.setDest(x-45, y-60, 270, 270);
       ++countCollision1;
-      if(countCollision1 >= 100)  {   // kéo dài tgian cho hiệu ứng nổ
+      if(countCollision1 == 1 && loser == false) --healthAmount, shipExplosion.play();
+      if(countCollision1 >= 80)  {   // kéo dài tgian cho hiệu ứng nổ
         checkCollision1 = false; countCollision1 = 0;
         }
       }
       if(checkCollision2){
       explosion.setDest(x-45, y-60, 270, 270);
       ++countCollision2;
-      if(countCollision2 >= 70)  {   // kéo dài tgian cho hiệu ứng nổ
+      if(countCollision2 == 1 && loser == false) --healthAmount, shipExplosion.play();
+      if(countCollision2 >= 80)  {   // kéo dài tgian cho hiệu ứng nổ
         checkCollision2 = false; countCollision2 = 0;
         }
     }
     if(checkCollision3){
       explosion.setDest(x-45, y-60, 270, 270);
       ++countCollision3;
-      if(countCollision3 >= 70)  {   // kéo dài tgian cho hiệu ứng nổ
+      if(countCollision3 == 1 && loser == false) --healthAmount, shipExplosion.play();
+      if(countCollision3 >= 80)  {   // kéo dài tgian cho hiệu ứng nổ
         checkCollision3 = false; countCollision3 = 0;
         }
     }
     if(checkCollision4){
       explosion.setDest(x-45, y-60, 270, 270);
       ++countCollision4;
-      if(countCollision4 >= 70)  {   // kéo dài tgian cho hiệu ứng nổ
+      if(countCollision4 == 1 && loser == false) --healthAmount, shipExplosion.play();
+      if(countCollision4 >= 80)  {   // kéo dài tgian cho hiệu ứng nổ
         checkCollision4 = false; countCollision4 = 0;
         }
     }    
@@ -344,8 +348,8 @@ void Game::loop() {
    // update ship's health
    for (int i = 0; i < healthAmount; ++i) {
     if(collision(x, y, xA_1, yA_1, aWidth1, aHeight1) || collision(x, y, xA_2, yA_2, aWidth2, aHeight2) || collision(x, y, xA_3, yA_3, aWidth3, aHeight3) || collision(x, y, xA_4, yA_4, aWidth4, aHeight4)) {
-        shipExplosion.play();
-      --healthAmount;
+        // shipExplosion.play();
+      // --healthAmount;
        break;
        } 
     if(checkRepair == true) {
